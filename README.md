@@ -5,7 +5,7 @@ Nested filter prisma
 Nested filters allow automatically filter data resolved for projections based on hierarchy of parent queries or mutations
 
 `Prisma model`
-```
+```prisma
 model Post {
   id              String      @default(cuid()) @id
   commentList     Comment[]
@@ -26,15 +26,15 @@ model Author {
 ```
 
 `Query`
-```
+```graphql
 query {
   post {
     id
-    commentList { // let's asume this list should return comments that belong to post above
+    commentList {       # let's asume this list should return comments that belong to post above
       id
       author {
         id
-        commentList { // let's assume that this list shourd return only comments that belong to post and author above
+        commentList {   # let's assume that this list shourd return only comments that belong to post and author above
           id
         }
       }
@@ -44,7 +44,7 @@ query {
 ```
 
 `Types/Context.ts`
-```
+```typescript
 import type { PrismaClient } from '@prisma/client'
 import type { NestedFilterMap } from '@txo/nested-filter-prisma'
 
@@ -55,7 +55,7 @@ export type Context = {
 ```
 
 `context.ts`
-```
+```typescript
 import { createNestedFilterMap } from '@txo/nested-filter-prisma'
 import type { PrismaClient } from '@prisma/client'
 
@@ -71,7 +71,7 @@ export function createContext (): Context {
 ```
 
 `NestedFilters.ts`
-```
+```typescript
 import { nestedFilter } from from '@txo/nested-filter-prisma'
 
 import type { Context } from './Types/ContextType'
@@ -91,7 +91,7 @@ export const nestedFilterList = [
 
 
 `Field declaration on Author type`:
-```
+```typescript
 import { nonNull, extendType } from 'nexus'
 
 import { withNestedFilters } from from '@txo/nested-filter-prisma'
