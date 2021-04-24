@@ -24,7 +24,12 @@
     "prepare": "yarn build"
   },
   "dependencies": {
+    "@txo/nexus-prisma": "^1.0.0",
+    "@txo/types": "^1.1.0",
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2"
   },
   "peerDependencies": {
+    "@txo-peer-dep/singleton": "^1.0.0"
   }
 }

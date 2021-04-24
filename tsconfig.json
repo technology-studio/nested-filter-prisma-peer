@@ -10,6 +10,10 @@
     "alwaysStrict": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "typeRoots": [
+      "./types",
+      "node_modules/@types"
+    ]
   }
 }
