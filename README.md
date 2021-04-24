@@ -1,7 +1,5 @@
 # Nested filter prisma #
 
-Nested filter prisma
-
 Nested filters allow automatically filter data resolved for projections based on hierarchy of parent queries or mutations
 
 #### **`Prisma model`**
