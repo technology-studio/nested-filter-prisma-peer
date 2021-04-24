@@ -5,7 +5,6 @@
 **/
 
 import type { GraphQLResolveInfo } from 'graphql'
-import { withSingleton } from '@txo-peer-dep/singleton'
 
 import type {
   Condition,
@@ -44,4 +43,4 @@ class ExtensionManager {
   }
 }
 
-export const extensionManager = withSingleton('txo-nested-filter-prisma.api.extensionManager', () => new ExtensionManager())
+export const extensionManager = new ExtensionManager()

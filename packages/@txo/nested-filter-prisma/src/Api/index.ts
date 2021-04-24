@@ -6,7 +6,6 @@
 
 export * from './AddEntityToNestedArgMap'
 export * from './AddNestedFilters'
-export * from './ExtensionManager'
 export * from './NestedFilter'
 export * from './NestedFilterMapFactory'
 export * from './WithNestedFilters'

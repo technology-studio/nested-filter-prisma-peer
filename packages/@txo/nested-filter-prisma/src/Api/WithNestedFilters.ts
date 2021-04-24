@@ -7,15 +7,14 @@
 import type { GraphQLResolveInfo } from 'graphql'
 import type { Prismify } from '@txo/nexus-prisma'
 import type { Prisma } from '@prisma/client'
+import { extensionManager, ExtensionOptions } from '@txo-peer-dep/nested-filter-prisma'
 
 import type {
   ContextWithNestedFilterMap,
   NestedFilterDeclarationMap,
   ObjectWithNestedArgMap,
   InjectedContext,
-  ExtensionOptions,
 } from '../Model/Types'
-import { extensionManager } from '../Api/ExtensionManager'
 
 import { addNestedFilters } from './AddNestedFilters'
 import { addEntityToNestedArgMap } from './AddEntityToNestedArgMap'

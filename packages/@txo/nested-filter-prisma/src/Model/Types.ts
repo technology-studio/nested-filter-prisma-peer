@@ -7,8 +7,6 @@
 
 import type { Prisma } from '@prisma/client'
 
-import { GraphQLResolveInfo } from 'graphql'
-
 export type GetPathAttributes<CONTEXT> = {
   typeAttributePath: string,
   routeAttribute?: string,
@@ -46,21 +44,4 @@ export type NestedArgMap = Record<string, Record<string, unknown>>
 
 export type ObjectWithNestedArgMap = {
   nestedArgMap?: NestedArgMap,
-}
-
-export type Condition = unknown
-
-export interface Extension {
-  populateConditionList: <SOURCE, ARGS, CONTEXT>(
-    conditionList: Condition[],
-    extensionOptions: ExtensionOptions | undefined,
-    source: SOURCE,
-    args: ARGS,
-    context: CONTEXT,
-    info: GraphQLResolveInfo
-  ) => void,
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ExtensionOptions {
 }
