@@ -18,7 +18,7 @@ const isNestedFilterCollectionMap = <CONTEXT>(
     collection && typeof collection === 'object' && !('type' in collection)
   )
 
-const traverseNestedFilterMap = <CONTEXT>(
+const traverseNestedFilterCollection = <CONTEXT>(
   collection: NestedFilterCollection<CONTEXT>,
   callback: (nestedFilter: NestedFilter<CONTEXT>) => void,
 ): void => {
@@ -26,16 +26,16 @@ const traverseNestedFilterMap = <CONTEXT>(
     callback(collection)
   }
   if (Array.isArray(collection)) {
-    collection.forEach(subCollection => traverseNestedFilterMap(subCollection, callback))
+    collection.forEach(subCollection => traverseNestedFilterCollection(subCollection, callback))
   }
   if (isNestedFilterCollectionMap(collection)) {
-    Object.keys(collection).forEach(key => traverseNestedFilterMap(collection[key], callback))
+    Object.keys(collection).forEach(key => traverseNestedFilterCollection(collection[key], callback))
   }
 }
 
 export const createNestedFilterMap = <CONTEXT>(collection: NestedFilterCollection<CONTEXT>): NestedFilterMap<CONTEXT> => {
   const nestedFilterMap: NestedFilterMap<CONTEXT> = {}
-  traverseNestedFilterMap(collection, nestedFilter => {
+  traverseNestedFilterCollection(collection, nestedFilter => {
     nestedFilterMap[nestedFilter.type] = nestedFilter
   })
   return nestedFilterMap

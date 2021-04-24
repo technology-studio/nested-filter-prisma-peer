@@ -44,4 +44,4 @@ class ExtensionManager {
   }
 }
 
-export const extensionManager = withSingleton('txo-nested-filters-prisma.api.extensionManager', () => new ExtensionManager())
+export const extensionManager = withSingleton('txo-nested-filter-prisma.api.extensionManager', () => new ExtensionManager())
