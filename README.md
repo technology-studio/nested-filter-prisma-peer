@@ -2,6 +2,17 @@
 
 Nested filters allow automatically filter data resolved for projections based on hierarchy of parent queries or mutations
 
+## Features
+
+* Transitivite relations A → B, B → C ⇒ A → C
+* Automatically applied filters by extensions
+* Support to extend existing nested filters
+
+## Api reference
+* 🍎 TBD 🍎
+
+## Example
+
 #### **`Prisma model`**
 ```prisma
 model Post {
