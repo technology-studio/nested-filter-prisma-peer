@@ -9,6 +9,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Stub {
-  id  String   @default(cuid()) @id
+model Post {
+  id              String      @default(cuid()) @id
+  description     String
+  commentList     Comment[]
+}
+
+model Comment {
+  id              String      @default(cuid()) @id
+  text            String
+  postId          String
+  post            Post        @relation(fields: [postId], references: [id])
+  authorId        String
+  author          Author      @relation(fields: [authorId], references: [id])
+}
+
+model Author {
+  id              String      @default(cuid()) @id
+  firstName       String
+  lastName        String
+  commentList     Comment[]
 }

@@ -12,10 +12,17 @@ export const CommentNestedFilter = nestedFilter<Context>({
   type: 'Comment',
   mapping: {
     'Post.id': 'post.id',
+  },
+})
+
+export const CommentNestedFilterExtended = nestedFilter<Context>({
+  type: 'Comment',
+  mapping: {
     'Author.id': 'author.id',
   },
 })
 
 export const nestedFilterList = [
   CommentNestedFilter,
+  CommentNestedFilterExtended,
 ]

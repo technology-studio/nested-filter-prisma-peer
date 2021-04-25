@@ -14,7 +14,7 @@ Nested filters allow automatically filter data resolved for projections based on
 ## Example
 
 #### **`Prisma model`**
-```prisma
+```prisma:prisma/schema.prisma
 model Post {
   id              String      @default(cuid()) @id
   commentList     Comment[]
