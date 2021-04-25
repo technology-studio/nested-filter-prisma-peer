@@ -1,4 +1,4 @@
-# Nested filter prisma #
+# Nested filter prisma
 
 Nested filters allow automatically filter data resolved for projections based on hierarchy of parent queries or mutations
 
@@ -52,8 +52,8 @@ query {
 }
 ```
 
-#### **`Types/Context.ts`**
-```typescript
+#### **`ContextType.ts`**
+```typescript:example/ContextType.ts [7]
 import type { PrismaClient } from '@prisma/client'
 import type { NestedFilterMap } from '@txo/nested-filter-prisma'
 
@@ -63,31 +63,32 @@ export type Context = {
 }
 ```
 
-#### **`context.ts`**
-```typescript
-import { createNestedFilterMap } from '@txo/nested-filter-prisma'
-import type { PrismaClient } from '@prisma/client'
+#### **`Context.ts`**
+```typescript:example/Context.ts [7]
+import { createNestedFilterMap } from '@txo/nested-filter-prisma/src'
+import { PrismaClient } from '@prisma/client'
 
-import type { Context } from './Types/ContextType'
+import type { Context } from './ContextType'
 import { nestedFilterList } from './NestedFilters'
 
 export function createContext (): Context {
   return {
-    prisma: new PrismaClient({}}),
+    prisma: new PrismaClient({}),
     nestedFilterMap: createNestedFilterMap(nestedFilterList),
   }
 }
+
 ```
 
 #### **`NestedFilters.ts`**
-```typescript
-import { nestedFilter } from from '@txo/nested-filter-prisma'
+```typescript:example/NestedFilters.ts [7]
+import { nestedFilter } from '@txo/nested-filter-prisma/src'
 
-import type { Context } from './Types/ContextType'
+import type { Context } from './ContextType'
 
 export const CommentNestedFilter = nestedFilter<Context>({
   type: 'Comment',
-  map: {
+  mapping: {
     'Post.id': 'post.id',
     'Author.id': 'author.id',
   },
@@ -98,12 +99,11 @@ export const nestedFilterList = [
 ]
 ```
 
-
 #### **`Field declaration on Author type`**
 ```typescript
 import { nonNull, extendType } from 'nexus'
 
-import { withNestedFilters } from from '@txo/nested-filter-prisma'
+import { withNestedFilters } from '@txo/nested-filter-prisma'
 
 export const authorCommentListField = extendType({
   type: 'Author',
@@ -111,7 +111,7 @@ export const authorCommentListField = extendType({
     t.list.field('commentList', {
       type: 'Comment',
       resolve: withNestedFilters({
-        map: {
+        mapping: {
           'Post.id': true,
           'Author.id': true,
         },
