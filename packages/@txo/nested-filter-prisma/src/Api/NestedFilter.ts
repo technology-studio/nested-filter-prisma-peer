@@ -5,36 +5,41 @@
 **/
 
 import { is } from '@txo/types'
-import type { Prisma } from '@prisma/client'
 
-import type {
+import {
   ContextWithNestedFilterMap,
-  GetPath,
   NestedFilter,
-  NestedFilterDeclarationMap,
+  NestedFilterDeclaration,
+  NestedFilterDefinition,
+  NestedFilterDefinitionMode,
 } from '../Model/Types'
 
-export const nestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>({
-  map,
+import { parseTypeAttributePath } from './ParseTypeAttributePath'
+
+export const nestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>(
+  declaration: NestedFilterDeclaration<CONTEXT>,
+): NestedFilterDefinition<CONTEXT> => ({
+    mode: NestedFilterDefinitionMode.MERGE,
+    declaration,
+  })
+
+export const createNestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>({
+  mapping,
   type,
   getPath,
-}: {
-  map: NestedFilterDeclarationMap,
-  type: Prisma.ModelName,
-  getPath?: GetPath<CONTEXT>,
-}): NestedFilter<CONTEXT> => {
+}: NestedFilterDeclaration<CONTEXT>): NestedFilter<CONTEXT> => {
   return {
     type,
-    getPath: ({ typeAttributePath, routeAttribute, context }) => {
+    getPath: ({ typeAttributePath, routeAttribute, context, fallbackGetPath }) => {
       const errorPrefix = `${type}NestedFilter:`
-      const declaration = map[typeAttributePath]
+      const mappingValue = mapping[typeAttributePath]
 
-      if (declaration) {
-        switch (typeof declaration) {
+      if (mappingValue) {
+        switch (typeof mappingValue) {
           case 'string':
-            return declaration
+            return mappingValue
           case 'object': {
-            const routePathList = Object.keys(declaration)
+            const routePathList = Object.keys(mappingValue)
             let routePath: string
             if (routePathList.length === 1) {
               routePath = routePathList[0]
@@ -45,7 +50,7 @@ export const nestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>
                 () => new Error(`${errorPrefix} multiple filter routes (${routePathList.join(', ')}) for path (typeAttributePath: ${typeAttributePath}) are available but no routeAttribute has been specified`),
               )
             }
-            const nestedFilterType = declaration[routePath]
+            const nestedFilterType = mappingValue[routePath]
             if (typeof nestedFilterType === 'boolean') {
               return routePath
             }
@@ -56,7 +61,7 @@ export const nestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>
             return routePath + '.' + nestedFilter.getPath({ typeAttributePath, context })
           }
           default: {
-            throw Error(`unknown declaration type ${typeof declaration} for (typeAttributePath: ${typeAttributePath})`)
+            throw Error(`unknown mapping type ${typeof mappingValue} for (typeAttributePath: ${typeAttributePath})`)
           }
         }
       }
@@ -69,17 +74,17 @@ export const nestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>
       }
 
       const extractLocalAttribute = (typeAttributePath: string): string => {
-        const typeAndAttributePair = typeAttributePath.split('.')
-        if (typeAndAttributePair.length !== 2) {
-          throw new Error(`${errorPrefix} unabled construct arbitrary path from ${typeAttributePath}`)
-        }
-        const [pathType, attributeName] = typeAndAttributePair
+        const { type: pathType, attribute } = is(
+          parseTypeAttributePath(typeAttributePath),
+          () => new Error(`${errorPrefix} unabled construct arbitrary path from ${typeAttributePath}`),
+        )
+
         if (type !== pathType) {
           throw new Error(
             `${errorPrefix} arbitrary attribute mapping doesn't map type (nested filter type: ${type}, path type: ${pathType} )`,
           )
         }
-        return attributeName
+        return attribute
       }
       return extractLocalAttribute(typeAttributePath)
     },

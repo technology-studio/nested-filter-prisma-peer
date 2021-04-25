@@ -6,23 +6,30 @@
 
 import type {
   NestedArgMap,
-  NestedFilterDeclarationMap,
+  NestedFilterMapping,
 } from '../Model/Types'
 
+import { parseTypeAttributePath } from './ParseTypeAttributePath'
+
 export const reportMissingNestedFilters = (
-  nestedFilterDeclarationMap: NestedFilterDeclarationMap,
+  nestedFilterMapping: NestedFilterMapping,
   nestedArgsMap?: NestedArgMap,
 ): void => {
   if (!nestedArgsMap) {
     return
   }
-  const declarationTypeAttributePathList = Object.keys(nestedFilterDeclarationMap)
-  const notDeclaredTypeAttributePathList = Object.keys(nestedArgsMap)
-    .filter(typeAttributePath => !declarationTypeAttributePathList.includes(typeAttributePath))
+  const mappingTypeAttributePathList = Object.keys(nestedFilterMapping)
+  const notMappedTypeList = Object.keys(nestedArgsMap)
+    .filter(type => (
+      type !== 'parent' &&
+      mappingTypeAttributePathList.every(
+        mappingTypeAttributePath => parseTypeAttributePath(mappingTypeAttributePath)?.type !== type,
+      )
+    ))
 
-  if (notDeclaredTypeAttributePathList.length > 0) {
+  if (notMappedTypeList.length > 0) {
     throw new Error(
-      `Nested filters has not been declared for following type attribute paths (${notDeclaredTypeAttributePathList.join(',')})`,
+      `Nested filters has not been mapped for following types (${notMappedTypeList.join(',')})`,
     )
   }
 }

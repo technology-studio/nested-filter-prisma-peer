@@ -4,25 +4,36 @@
  * @Copyright: Technology Studio
 **/
 
-import { NestedFilter, NestedFilterCollection, NestedFilterMap } from '../Model/Types'
+import type {
+  NestedFilterDeclaration,
+  NestedFilterCollection,
+  NestedFilterDefinition,
+  NestedFilterMap,
+  NestedFilterMapping,
+  NestedFilterDefinitionMode,
+  NestedFilterMappingValue,
+  ContextWithNestedFilterMap,
+} from '../Model/Types'
 
-const isNestedFilter = <CONTEXT>(
+import { createNestedFilter } from './NestedFilter'
+
+const isNestedFilterDefinition = <CONTEXT>(
   collection: NestedFilterCollection<CONTEXT>,
-): collection is NestedFilter<CONTEXT> => (
-    collection && typeof collection === 'object' && 'type' in collection
+): collection is NestedFilterDefinition<CONTEXT> => (
+    collection && typeof collection === 'object' && 'mode' in collection
   )
 
 const isNestedFilterCollectionMap = <CONTEXT>(
   collection: NestedFilterCollection<CONTEXT>,
 ): collection is { [key: string]: NestedFilterCollection<CONTEXT> } => (
-    collection && typeof collection === 'object' && !('type' in collection)
+    collection && typeof collection === 'object' && !('mode' in collection)
   )
 
 const traverseNestedFilterCollection = <CONTEXT>(
   collection: NestedFilterCollection<CONTEXT>,
-  callback: (nestedFilter: NestedFilter<CONTEXT>) => void,
+  callback: (nestedFilterDefinition: NestedFilterDefinition<CONTEXT>) => void,
 ): void => {
-  if (isNestedFilter(collection)) {
+  if (isNestedFilterDefinition(collection)) {
     callback(collection)
   }
   if (Array.isArray(collection)) {
@@ -33,10 +44,88 @@ const traverseNestedFilterCollection = <CONTEXT>(
   }
 }
 
-export const createNestedFilterMap = <CONTEXT>(collection: NestedFilterCollection<CONTEXT>): NestedFilterMap<CONTEXT> => {
-  const nestedFilterMap: NestedFilterMap<CONTEXT> = {}
-  traverseNestedFilterCollection(collection, nestedFilter => {
-    nestedFilterMap[nestedFilter.type] = nestedFilter
+const mergeNestedFilterMappingValues = (
+  existingMappingValue: NestedFilterMappingValue,
+  newMappingValue: NestedFilterMappingValue,
+): NestedFilterMappingValue => {
+  if (typeof existingMappingValue === 'boolean' || typeof newMappingValue === 'boolean') {
+    throw new Error('Mapping value can\'t be boolean, not supported yet')
+  }
+
+  return {
+    ...(typeof existingMappingValue === 'string' ? { [existingMappingValue]: true } : existingMappingValue),
+    ...(typeof newMappingValue === 'string' ? { [newMappingValue]: true } : newMappingValue),
+  }
+}
+
+const mergeNestedFilterMappings = (
+  existingMapping: NestedFilterMapping,
+  newMapping: NestedFilterMapping,
+  mode: NestedFilterDefinitionMode, // NOTE: to be used later for different merging strategies
+): NestedFilterMapping => (
+  Object.keys(newMapping).reduce((nextMapping, key) => {
+    if (key in nextMapping) {
+      nextMapping[key] = mergeNestedFilterMappingValues(
+        nextMapping[key],
+        newMapping[key],
+      )
+    } else {
+      nextMapping[key] = newMapping[key]
+    }
+    return nextMapping
+  }, {
+    ...existingMapping,
   })
-  return nestedFilterMap
+)
+
+const mergeNestedFilterDeclarations = <CONTEXT>(
+  existingDeclaration: NestedFilterDeclaration<CONTEXT>,
+  newDeclaration: NestedFilterDeclaration<CONTEXT>,
+  mode: NestedFilterDefinitionMode,
+): NestedFilterDeclaration<CONTEXT> => ({
+    type: existingDeclaration.type,
+    mapping: mergeNestedFilterMappings(
+      existingDeclaration.mapping,
+      newDeclaration.mapping,
+      mode,
+    ),
+    getPath: (
+      newDeclaration.getPath && existingDeclaration.getPath
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        ? attributes => newDeclaration.getPath!({
+          ...attributes,
+          fallbackGetPath: existingDeclaration.getPath,
+        })
+        : newDeclaration.getPath ?? existingDeclaration.getPath
+    ),
+  })
+
+export const produceNestedFilterDeclarationMap = <CONTEXT>(
+  collection: NestedFilterCollection<CONTEXT>,
+): Record<string, NestedFilterDeclaration<CONTEXT>> => {
+  const declarationMap: Record<string, NestedFilterDeclaration<CONTEXT>> = {}
+  traverseNestedFilterCollection(collection, ({ mode, declaration }) => {
+    const existingDeclaration = declarationMap[declaration.type]
+    if (existingDeclaration) {
+      declarationMap[declaration.type] = mergeNestedFilterDeclarations(
+        existingDeclaration,
+        declaration,
+        mode,
+      )
+    } else {
+      declarationMap[declaration.type] = declaration
+    }
+  })
+  return declarationMap
+}
+
+export const createNestedFilterMap = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>(
+  collection: NestedFilterCollection<CONTEXT>,
+): NestedFilterMap<CONTEXT> => {
+  const declarationMap = produceNestedFilterDeclarationMap(collection)
+  return Object.keys(declarationMap).reduce((nestedFilterMap: NestedFilterMap<CONTEXT>, type) => {
+    nestedFilterMap[type] = createNestedFilter(declarationMap[type])
+
+    return nestedFilterMap
+  }, {})
 }

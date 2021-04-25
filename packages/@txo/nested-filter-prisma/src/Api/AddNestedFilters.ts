@@ -12,7 +12,7 @@ import type { Prisma } from '@prisma/client'
 import type {
   ContextWithNestedFilterMap,
   NestedArgMap,
-  NestedFilterDeclarationMap,
+  NestedFilterMapping,
 } from '../Model/Types'
 
 export const addNestedFilters = <
@@ -20,14 +20,14 @@ export const addNestedFilters = <
   CONTEXT extends ContextWithNestedFilterMap<CONTEXT>
 >({
     nestedArgMap,
-    declarationMap,
+    mapping,
     conditionList,
     additionalConditionList,
     context,
     defaultNestedFilterType,
   }: {
     nestedArgMap?: NestedArgMap,
-    declarationMap: NestedFilterDeclarationMap,
+    mapping: NestedFilterMapping,
     conditionList?: CONDITION[],
     additionalConditionList?: unknown[],
     context: CONTEXT,
@@ -35,7 +35,7 @@ export const addNestedFilters = <
   }): { AND: CONDITION[] } => {
   const filterList: CONDITION[] = []
 
-  Object.entries(declarationMap).forEach(([typeAttributePath, declaration]) => {
+  Object.entries(mapping).forEach(([typeAttributePath, mappingValue]) => {
     const filterValue = get(nestedArgMap, typeAttributePath)
     const addFilter = (filterPath: string): void => {
       const filter = set({}, filterPath, filterValue)
@@ -61,19 +61,23 @@ export const addNestedFilters = <
     }
 
     if (filterValue !== undefined) {
-      switch (typeof declaration) {
+      switch (typeof mappingValue) {
         case 'boolean': {
           addNestedFilterByNestedFilterType(defaultNestedFilterType)
           break
         }
         case 'string': {
-          const filterPath = declaration
+          const filterPath = mappingValue
           addFilter(filterPath)
           break
         }
         case 'object':
-          Object.entries(declaration).forEach(([routeAttribute, nestedFilterType]) => {
-            addNestedFilterByNestedFilterType(nestedFilterType, routeAttribute)
+          Object.entries(mappingValue).forEach(([routeAttribute, nestedFilterType]) => {
+            if (typeof nestedFilterType === 'boolean') {
+              addFilter(routeAttribute)
+            } else {
+              addNestedFilterByNestedFilterType(nestedFilterType, routeAttribute)
+            }
           })
           break
       }

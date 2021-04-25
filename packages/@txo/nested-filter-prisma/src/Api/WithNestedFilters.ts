@@ -11,7 +11,7 @@ import { extensionManager, ExtensionOptions } from '@txo-peer-dep/nested-filter-
 
 import type {
   ContextWithNestedFilterMap,
-  NestedFilterDeclarationMap,
+  NestedFilterMapping,
   ObjectWithNestedArgMap,
   InjectedContext,
 } from '../Model/Types'
@@ -25,12 +25,12 @@ type InjectedArgs<ARGS> = ARGS extends { where: infer WHERE }
   : ARGS & { where: { AND: [] } }
 
 export const withNestedFilters = ({
-  map: declarationMap,
+  mapping,
   resultType,
   extensionOptions,
 }: {
   // TODO: add support to call resolver for filters so we allow composite constructs shared for other resolvers
-  map: NestedFilterDeclarationMap,
+  mapping: NestedFilterMapping,
   resultType: Prisma.ModelName,
   extensionOptions?: ExtensionOptions,
 }) => <SOURCE, WHERE, ARGS extends { where?: WHERE }, CONTEXT extends ContextWithNestedFilterMap<CONTEXT>, RETURN_TYPE>(
@@ -57,18 +57,18 @@ export const withNestedFilters = ({
 
     const { nestedArgMap } = source as ObjectWithNestedArgMap
 
-    reportMissingNestedFilters(declarationMap, nestedArgMap)
+    reportMissingNestedFilters(mapping, nestedArgMap)
 
     const addNestedFiltersBaseAttributes = {
       nestedArgMap,
-      declarationMap,
+      mapping,
       additionalConditionList,
       context,
       defaultNestedFilterType: resultType,
     }
     const nextWhere = addNestedFilters({
       ...addNestedFiltersBaseAttributes,
-      conditionList: [args.where],
+      conditionList: args.where ? [args.where] : [],
     })
 
     const nextArgs = {
@@ -79,10 +79,10 @@ export const withNestedFilters = ({
     const injectedContext = context as InjectedContext<CONTEXT>
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    injectedContext.withNestedFilters = (declarationMap: NestedFilterDeclarationMap): any => {
+    injectedContext.withNestedFilters = (mapping: NestedFilterMapping): any => {
       return addNestedFilters({
         ...addNestedFiltersBaseAttributes,
-        declarationMap,
+        mapping,
       })
     }
     const resultOrResultList = await resolver(

@@ -4,20 +4,22 @@
  * @Copyright: Technology Studio
 **/
 
+import type { Prisma } from '@prisma/client'
+
 export const addEntityToNestedArgMap = <RESULT>(
   result: RESULT,
   nestedArgMap: Record<string, unknown> | undefined,
-  resultType: string,
+  resultType: Prisma.ModelName,
 ): RESULT & { nestedArgMap: Record<string, unknown> } => {
   return {
     ...result,
     nestedArgMap: {
       ...nestedArgMap,
       [resultType]: {
-        // NOTE: maybe we don't need to spread nestedArg here, let's observe if we need it then remove or keep
-        ...nestedArgMap,
         ...result,
       },
+      // NOTE: maybe we don't need to spread nestedArg here, let's observe if we need it then remove or keep
+      parent: nestedArgMap,
     },
   }
 }
