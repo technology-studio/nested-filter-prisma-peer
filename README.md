@@ -15,13 +15,26 @@ Nested filters allow automatically filter data resolved for projections based on
 
 #### **`Prisma model`**
 ```prisma:prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  // previewFeatures = []
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model Post {
   id              String      @default(cuid()) @id
+  description     String
   commentList     Comment[]
 }
 
 model Comment {
   id              String      @default(cuid()) @id
+  text            String
   postId          String
   post            Post        @relation(fields: [postId], references: [id])
   authorId        String
@@ -30,8 +43,11 @@ model Comment {
 
 model Author {
   id              String      @default(cuid()) @id
+  firstName       String
+  lastName        String
   commentList     Comment[]
 }
+
 ```
 
 #### **`Query`**
@@ -91,12 +107,19 @@ export const CommentNestedFilter = nestedFilter<Context>({
   type: 'Comment',
   mapping: {
     'Post.id': 'post.id',
+  },
+})
+
+export const CommentNestedFilterExtended = nestedFilter<Context>({
+  type: 'Comment',
+  mapping: {
     'Author.id': 'author.id',
   },
 })
 
 export const nestedFilterList = [
   CommentNestedFilter,
+  CommentNestedFilterExtended,
 ]
 
 ```
