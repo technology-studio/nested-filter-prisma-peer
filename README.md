@@ -55,12 +55,13 @@ query {
 #### **`ContextType.ts`**
 ```typescript:example/ContextType.ts [7]
 import type { PrismaClient } from '@prisma/client'
-import type { NestedFilterMap } from '@txo/nested-filter-prisma'
+import type { NestedFilterMap } from '@txo/nested-filter-prisma/src'
 
 export type Context = {
   prisma: PrismaClient,
   nestedFilterMap: NestedFilterMap<Context>,
 }
+
 ```
 
 #### **`Context.ts`**
@@ -97,6 +98,7 @@ export const CommentNestedFilter = nestedFilter<Context>({
 export const nestedFilterList = [
   CommentNestedFilter,
 ]
+
 ```
 
 #### **`Field declaration on Author type`**
