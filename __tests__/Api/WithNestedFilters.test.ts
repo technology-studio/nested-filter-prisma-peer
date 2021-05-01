@@ -7,7 +7,6 @@
 import { Author } from '@prisma/client'
 import {
   addEntityToNestedArgMap,
-  ObjectWithNestedArgMap,
   withNestedFilters,
 } from '@txo/nested-filter-prisma/src'
 
@@ -17,7 +16,7 @@ import { createContext } from '../../example/Context'
 import type { Context } from '../../example/ContextType'
 import { AUTHOR, POST } from '../Data'
 
-type EmptyResolver<SOURCE = ObjectWithNestedArgMap> = (
+type EmptyResolver<SOURCE = undefined> = (
   source: SOURCE,
   args: { where?: unknown },
   context: Context,
@@ -46,7 +45,7 @@ describe('WithNestedFilters', () => {
       })
     })
 
-    return resolver({}, {}, context, FAKE_INFO)
+    return resolver(undefined, {}, context, FAKE_INFO)
   })
 
   test('withNestedFilters - throw exception for not mapped parent entity', async () => {

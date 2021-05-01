@@ -55,7 +55,7 @@ export const withNestedFilters = ({
       info,
     )
 
-    const { nestedArgMap } = source as ObjectWithNestedArgMap
+    const { nestedArgMap } = (source ?? {}) as ObjectWithNestedArgMap
 
     reportMissingNestedFilters(mapping, nestedArgMap)
 
