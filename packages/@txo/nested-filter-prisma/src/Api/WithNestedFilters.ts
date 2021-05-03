@@ -6,7 +6,6 @@
 
 import type { GraphQLResolveInfo } from 'graphql'
 import type { Prismify } from '@txo/nexus-prisma'
-import type { Prisma } from '@prisma/client'
 import { extensionManager, ExtensionOptions } from '@txo-peer-dep/nested-filter-prisma'
 
 import type {
@@ -14,6 +13,8 @@ import type {
   NestedFilterMapping,
   ObjectWithNestedArgMap,
   InjectedContext,
+  IgnoreRuleMapping,
+  Type,
 } from '../Model/Types'
 
 import { addNestedFilters } from './AddNestedFilters'
@@ -26,12 +27,14 @@ type InjectedArgs<ARGS> = ARGS extends { where: infer WHERE }
 
 export const withNestedFilters = ({
   mapping,
+  ignore,
   resultType,
   extensionOptions,
 }: {
   // TODO: add support to call resolver for filters so we allow composite constructs shared for other resolvers
   mapping: NestedFilterMapping,
-  resultType: Prisma.ModelName,
+  ignore?: IgnoreRuleMapping,
+  resultType: Type,
   extensionOptions?: ExtensionOptions,
 }) => <SOURCE, WHERE, ARGS extends { where?: WHERE }, CONTEXT extends ContextWithNestedFilterMap<CONTEXT>, RETURN_TYPE>(
   resolver: (
@@ -55,9 +58,13 @@ export const withNestedFilters = ({
       info,
     )
 
-    const { nestedArgMap } = (source ?? {}) as ObjectWithNestedArgMap
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const nestedArgMap = (source as ObjectWithNestedArgMap).nestedArgMap!
 
-    reportMissingNestedFilters(mapping, nestedArgMap)
+    reportMissingNestedFilters(mapping, {
+      ...context.nestedFilterMap[resultType]?.declaration.ignore,
+      ...ignore,
+    }, nestedArgMap)
 
     const addNestedFiltersBaseAttributes = {
       nestedArgMap,

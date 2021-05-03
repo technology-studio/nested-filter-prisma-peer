@@ -4,12 +4,12 @@
  * @Copyright: Technology Studio
 **/
 
-import type { Prisma } from '@prisma/client'
+import type { Type } from '../Model/Types'
 
 export const addEntityToNestedArgMap = <RESULT>(
   result: RESULT,
   nestedArgMap: Record<string, unknown> | undefined,
-  resultType: Prisma.ModelName,
+  resultType: Type,
 ): RESULT & { nestedArgMap: Record<string, unknown> } => {
   return {
     ...result,

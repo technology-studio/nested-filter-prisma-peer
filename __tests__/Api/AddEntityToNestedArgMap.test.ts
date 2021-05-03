@@ -31,7 +31,6 @@ describe('AddEntityToNestedArgMapTest', () => {
     const nestedArgMap = { Post: POST }
     const result = addEntityToNestedArgMap(AUTHOR, nestedArgMap, 'Author')
 
-    console.log('POST', POST)
     expect(result).toEqual({
       ...AUTHOR,
       nestedArgMap: {

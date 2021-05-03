@@ -6,3 +6,4 @@
 
 export * from './Api'
 export * from './Model/Types'
+export * from './Middleware'

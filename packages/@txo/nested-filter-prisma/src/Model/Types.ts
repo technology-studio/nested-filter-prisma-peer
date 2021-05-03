@@ -7,8 +7,17 @@
 
 import type { Prisma } from '@prisma/client'
 
+import type {
+  IgnoreRuleType,
+  NestedFilterDefinitionMode,
+} from './Enums'
+
+export type Type = Prisma.ModelName
+
+export type TypeAttributePath = `${Type}.${string}`
+
 export type GetPathAttributes<CONTEXT> = {
-  typeAttributePath: string,
+  typeAttributePath: TypeAttributePath,
   routeAttribute?: string,
   context: CONTEXT,
   fallbackGetPath?: GetPath<CONTEXT>,
@@ -17,24 +26,32 @@ export type GetPathAttributes<CONTEXT> = {
 export type GetPath<CONTEXT> = (attributes: GetPathAttributes<CONTEXT>) => string | undefined
 
 export type NestedFilter<CONTEXT> = {
-  type: Prisma.ModelName,
+  type: Type,
+  declaration: NestedFilterDeclaration<CONTEXT>,
   getPath: (attributes: GetPathAttributes<CONTEXT>) => string,
 }
 
-export type NestedFilterMappingValue = boolean | string | Record<string, Prisma.ModelName | boolean>
+export type IgnoreRule = {
+  type: IgnoreRuleType.SUPPRESSED_BY,
+  suppressedBy: TypeAttributePath,
+} | {
+  type: IgnoreRuleType.IGNORED,
+}
 
+export type IgnoreRuleMapping = {
+  [KEY in Type]?: IgnoreRule
+}
+
+export type NestedFilterMappingValue = boolean | string | Record<string, Type | boolean>
+
+// TODO: replace string with TypeAttributePath when 4.4 https://github.com/microsoft/TypeScript/pull/26797
 export type NestedFilterMapping = Record<string, NestedFilterMappingValue>
 
 export type NestedFilterDeclaration<CONTEXT> = {
   mapping: NestedFilterMapping,
-  type: Prisma.ModelName,
+  ignore?: IgnoreRuleMapping,
+  type: Type,
   getPath?: GetPath<CONTEXT>,
-}
-
-export enum NestedFilterDefinitionMode {
-  MERGE = 'merge',
-  // TODO: later EXTEND = 'extend',
-  // TODO: later OVERRIDE = 'override',
 }
 
 export type NestedFilterDefinition<CONTEXT> = {

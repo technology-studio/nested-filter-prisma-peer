@@ -7,12 +7,13 @@
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { is } from '@txo/types'
-import type { Prisma } from '@prisma/client'
 
 import type {
   ContextWithNestedFilterMap,
   NestedArgMap,
   NestedFilterMapping,
+  Type,
+  TypeAttributePath,
 } from '../Model/Types'
 
 export const addNestedFilters = <
@@ -31,11 +32,12 @@ export const addNestedFilters = <
     conditionList?: CONDITION[],
     additionalConditionList?: unknown[],
     context: CONTEXT,
-    defaultNestedFilterType: Prisma.ModelName,
+    defaultNestedFilterType: Type,
   }): { AND: CONDITION[] } => {
   const filterList: CONDITION[] = []
 
-  Object.entries(mapping).forEach(([typeAttributePath, mappingValue]) => {
+  Object.entries(mapping).forEach(([key, mappingValue]) => {
+    const typeAttributePath = key as TypeAttributePath
     const filterValue = get(nestedArgMap, typeAttributePath)
     const addFilter = (filterPath: string): void => {
       const filter = set({}, filterPath, filterValue)

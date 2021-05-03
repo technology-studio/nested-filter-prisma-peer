@@ -4,15 +4,16 @@
  * @Copyright: Technology Studio
 **/
 
+import { NestedFilterDefinitionMode } from '../Model'
 import type {
   NestedFilterDeclaration,
   NestedFilterCollection,
   NestedFilterDefinition,
   NestedFilterMap,
   NestedFilterMapping,
-  NestedFilterDefinitionMode,
   NestedFilterMappingValue,
   ContextWithNestedFilterMap,
+  IgnoreRuleMapping,
 } from '../Model/Types'
 
 import { createNestedFilter } from './NestedFilter'
@@ -77,6 +78,14 @@ const mergeNestedFilterMappings = (
     ...existingMapping,
   })
 )
+const mergeNestedFilterIgnoreRuleMapping = (
+  existingIgnore: IgnoreRuleMapping | undefined,
+  newIgnore: IgnoreRuleMapping | undefined,
+  mode: NestedFilterDefinitionMode, // NOTE: to be used later for different merging strategies
+): IgnoreRuleMapping | undefined => existingIgnore && newIgnore && ({
+  ...existingIgnore,
+  ...newIgnore,
+})
 
 const mergeNestedFilterDeclarations = <CONTEXT>(
   existingDeclaration: NestedFilterDeclaration<CONTEXT>,
@@ -87,6 +96,11 @@ const mergeNestedFilterDeclarations = <CONTEXT>(
     mapping: mergeNestedFilterMappings(
       existingDeclaration.mapping,
       newDeclaration.mapping,
+      mode,
+    ),
+    ignore: mergeNestedFilterIgnoreRuleMapping(
+      existingDeclaration.ignore,
+      newDeclaration.ignore,
       mode,
     ),
     getPath: (

@@ -12,7 +12,8 @@ import {
   NestedFilterDeclaration,
   NestedFilterDefinition,
   NestedFilterDefinitionMode,
-} from '../Model/Types'
+  NestedFilterMappingValue,
+} from '../Model'
 
 import { parseTypeAttributePath } from './ParseTypeAttributePath'
 
@@ -23,16 +24,20 @@ export const nestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>
     declaration,
   })
 
-export const createNestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>({
-  mapping,
-  type,
-  getPath,
-}: NestedFilterDeclaration<CONTEXT>): NestedFilter<CONTEXT> => {
+export const createNestedFilter = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>(
+  declaration: NestedFilterDeclaration<CONTEXT>,
+): NestedFilter<CONTEXT> => {
   return {
-    type,
+    type: declaration.type,
+    declaration,
     getPath: ({ typeAttributePath, routeAttribute, context, fallbackGetPath }) => {
+      const {
+        mapping,
+        type,
+        getPath,
+      } = declaration
       const errorPrefix = `${type}NestedFilter:`
-      const mappingValue = mapping[typeAttributePath]
+      const mappingValue: NestedFilterMappingValue = mapping[typeAttributePath]
 
       if (mappingValue) {
         switch (typeof mappingValue) {
