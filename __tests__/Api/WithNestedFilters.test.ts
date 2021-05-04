@@ -4,7 +4,7 @@
  * @Copyright: Technology Studio
 **/
 
-import { Author, Post } from '@prisma/client'
+import { Author, Post, Comment } from '@prisma/client'
 import {
   addEntityToNestedArgMap,
   withNestedFilters,
@@ -14,11 +14,13 @@ import {
 
 import { createContext } from '../../example/Context'
 
-import { AUTHOR, POST, EmptyResolver, FAKE_INFO } from '../Data'
+import { AUTHOR, POST, COMMENT, EmptyResolver, FAKE_INFO } from '../Data'
 
 describe('WithNestedFilters', () => {
   const resultWithPost = addEntityToNestedArgMap(POST, undefined, 'Post')
   const resultWithPostAndAuthor = addEntityToNestedArgMap(AUTHOR, resultWithPost.nestedArgMap, 'Author')
+
+  const resultWithPostAndComment = addEntityToNestedArgMap(COMMENT, resultWithPost.nestedArgMap, 'Comment')
 
   test('withNestedFilters - no parent entities', async () => {
     const context = createContext()
@@ -165,5 +167,32 @@ describe('WithNestedFilters', () => {
       })
     })
     return resolver(resultWithPostAndAuthor, {}, context, FAKE_INFO)
+  })
+
+  test('withNestedFilters - with transitive relation', async () => {
+    const context = createContext()
+
+    const resolver: EmptyResolver<Comment> = withNestedFilters({
+      mapping: {
+        'Post.id': { 'commentList.some': 'Comment' },
+      },
+      ignore: {
+        Comment: suppressedBy('Post.id'),
+      },
+      resultType: 'Author',
+    })(async (parent, args, ctx, info) => {
+      expect(args.where).toEqual({
+        AND: [{
+          commentList: {
+            some: {
+              post: {
+                id: POST.id,
+              },
+            },
+          },
+        }],
+      })
+    })
+    return resolver(resultWithPostAndComment, {}, context, FAKE_INFO)
   })
 })

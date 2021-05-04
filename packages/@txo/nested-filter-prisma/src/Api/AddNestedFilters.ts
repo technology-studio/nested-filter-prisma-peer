@@ -58,7 +58,8 @@ export const addNestedFilters = <
         context.nestedFilterMap[nestedFilterType],
         () => new Error(`nestedFilter for type ${nestedFilterType} doesn't exist`),
       )
-      const filterPath = nestedFilter.getPath({ typeAttributePath, routeAttribute, context })
+      const nestedFilterPath = nestedFilter.getPath({ typeAttributePath, routeAttribute, context })
+      const filterPath = routeAttribute ? `${routeAttribute}.${nestedFilterPath}` : nestedFilterPath
       addFilter(filterPath)
     }
 

@@ -4,7 +4,7 @@
  * @Copyright: Technology Studio
 **/
 
-import type { Post, Author } from '@prisma/client'
+import type { Post, Author, Comment } from '@prisma/client'
 import { GraphQLResolveInfo } from 'graphql'
 import { ObjectWithNestedArgMap } from '@txo/nested-filter-prisma/src'
 
@@ -19,6 +19,13 @@ export const AUTHOR: Author = {
   id: 'author.id.1',
   firstName: 'John',
   lastName: 'Smith',
+}
+
+export const COMMENT: Comment = {
+  id: 'comment.id.1',
+  authorId: AUTHOR.id,
+  postId: POST.id,
+  text: 'Lorem ipsum dolor sit amet',
 }
 
 export type EmptyResolver<SOURCE = ObjectWithNestedArgMap> = (
