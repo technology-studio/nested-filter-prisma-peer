@@ -5,7 +5,7 @@
 **/
 
 import type { Post, Author, Comment } from '@prisma/client'
-import { GraphQLResolveInfo } from 'graphql'
+import { GraphQLObjectType, GraphQLResolveInfo } from 'graphql'
 import { ObjectWithNestedArgMap } from '@txo/nested-filter-prisma/src'
 
 import type { Context } from '../example/ContextType'
@@ -36,8 +36,17 @@ export type EmptyResolver<SOURCE = ObjectWithNestedArgMap> = (
 ) => Promise<void>
 
 export const FAKE_INFO = null as unknown as GraphQLResolveInfo
+
 export const FAKE_ROOT_INFO = {
   fieldName: 'post',
   path: { prev: undefined, key: 'post', typename: 'Query' },
+  parentType: new GraphQLObjectType({
+    name: 'Query',
+    fields: {},
+  }),
+  returnType: new GraphQLObjectType({
+    name: 'Post',
+    fields: {},
+  }),
 
 } as unknown as GraphQLResolveInfo

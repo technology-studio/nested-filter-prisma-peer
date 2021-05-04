@@ -14,14 +14,14 @@ ARGS,
 CONTEXT,
 RESULT extends ObjectWithNestedArgMap
 >(
-  resolve: (source: SOURCE, args: ARGS, context: CONTEXT, info: GraphQLResolveInfo) => Promise<RESULT | RESULT[]>,
+  resolve: (source: SOURCE | undefined, args: ARGS, context: CONTEXT, info: GraphQLResolveInfo) => Promise<RESULT | RESULT[]>,
   source: SOURCE | undefined,
   args: ARGS,
   context: CONTEXT,
   info: GraphQLResolveInfo,
 ): Promise<RESULT | RESULT[]> => {
   const nestedArgMap = source?.nestedArgMap ?? {}
-  if (!source?.nestedArgMap) {
+  if (!isLeafType(info.parentType) && !source?.nestedArgMap) {
     if (info.path.prev) {
       throw Error('nestedArgMap property missing in source for path: ' + JSON.stringify(info.path))
     }
@@ -30,8 +30,7 @@ RESULT extends ObjectWithNestedArgMap
   }
 
   const resultOrResultList = await resolve(source, args, context, info)
-
-  if (isLeafType(info.returnType)) {
+  if (!isLeafType(info.returnType)) {
     if (resultOrResultList) {
       if (Array.isArray(resultOrResultList)) {
         let modified = false

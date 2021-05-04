@@ -13,7 +13,7 @@ import { FAKE_ROOT_INFO, POST } from '../Data'
 type PostWithNestedArgMap = Post & ObjectWithNestedArgMap
 describe('NestedFilterMiddleware', () => {
   test('nestedFilterMiddleware - auto inject empty nestedArgMap for root resolver', async () => {
-    const resolve = async (source: ObjectWithNestedArgMap, args: null, context: null, info: GraphQLResolveInfo): Promise<PostWithNestedArgMap[]> => {
+    const resolve = async (source: ObjectWithNestedArgMap | undefined, args: null, context: null, info: GraphQLResolveInfo): Promise<PostWithNestedArgMap[]> => {
       return [{ ...POST }]
     }
     const result = await nestedFilterMiddleware(resolve, undefined, null, null, FAKE_ROOT_INFO)
