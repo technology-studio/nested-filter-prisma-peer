@@ -4,7 +4,7 @@
  * @Copyright: Technology Studio
 **/
 
-import type { GraphQLResolveInfo } from 'graphql'
+import { GraphQLResolveInfo, isLeafType } from 'graphql'
 
 import type { ObjectWithNestedArgMap } from '../Model/Types'
 
@@ -31,27 +31,29 @@ RESULT extends ObjectWithNestedArgMap
 
   const resultOrResultList = await resolve(source, args, context, info)
 
-  if (resultOrResultList) {
-    if (Array.isArray(resultOrResultList)) {
-      let modified = false
-      const nextResultList = resultOrResultList.map(result => {
-        if (result && !result.nestedArgMap) {
-          modified = true
-          return {
-            ...result,
-            nestedArgMap,
+  if (isLeafType(info.returnType)) {
+    if (resultOrResultList) {
+      if (Array.isArray(resultOrResultList)) {
+        let modified = false
+        const nextResultList = resultOrResultList.map(result => {
+          if (result && !result.nestedArgMap) {
+            modified = true
+            return {
+              ...result,
+              nestedArgMap,
+            }
           }
-        }
-        return result
-      })
-      return modified ? nextResultList : resultOrResultList
+          return result
+        })
+        return modified ? nextResultList : resultOrResultList
+      }
     }
-  }
 
-  if (resultOrResultList && !resultOrResultList.nestedArgMap) {
-    return {
-      ...resultOrResultList,
-      nestedArgMap,
+    if (resultOrResultList && typeof resultOrResultList === 'object' && !resultOrResultList.nestedArgMap) {
+      return {
+        ...resultOrResultList,
+        nestedArgMap,
+      }
     }
   }
 
