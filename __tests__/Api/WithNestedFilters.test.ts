@@ -7,26 +7,14 @@
 import { Author, Post } from '@prisma/client'
 import {
   addEntityToNestedArgMap,
-  ObjectWithNestedArgMap,
   withNestedFilters,
   suppressedBy,
   ignored,
 } from '@txo/nested-filter-prisma/src'
 
-import { GraphQLResolveInfo } from 'graphql'
-
 import { createContext } from '../../example/Context'
-import type { Context } from '../../example/ContextType'
-import { AUTHOR, POST } from '../Data'
 
-type EmptyResolver<SOURCE = ObjectWithNestedArgMap> = (
-  source: SOURCE,
-  args: { where?: unknown },
-  context: Context,
-  info: GraphQLResolveInfo
-) => Promise<void>
-
-const FAKE_INFO = null as unknown as GraphQLResolveInfo
+import { AUTHOR, POST, EmptyResolver, FAKE_INFO } from '../Data'
 
 describe('WithNestedFilters', () => {
   const resultWithPost = addEntityToNestedArgMap(POST, undefined, 'Post')

@@ -15,18 +15,18 @@ CONTEXT,
 RESULT extends ObjectWithNestedArgMap
 >(
   resolve: (source: SOURCE, args: ARGS, context: CONTEXT, info: GraphQLResolveInfo) => Promise<RESULT | RESULT[]>,
-  source: SOURCE,
+  source: SOURCE | undefined,
   args: ARGS,
   context: CONTEXT,
   info: GraphQLResolveInfo,
 ): Promise<RESULT | RESULT[]> => {
-  let { nestedArgMap } = source
-
-  if (!nestedArgMap) {
+  const nestedArgMap = source?.nestedArgMap ?? {}
+  if (!source?.nestedArgMap) {
     if (info.path.prev) {
       throw Error('nestedArgMap property missing in source for path: ' + JSON.stringify(info.path))
     }
-    nestedArgMap = {}
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    source = { ...source, nestedArgMap } as SOURCE
   }
 
   const resultOrResultList = await resolve(source, args, context, info)
