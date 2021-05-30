@@ -14,3 +14,8 @@ export enum IgnoreRuleType {
   IGNORED = 'ignored',
   SUPPRESSED_BY = 'suppressed-by',
 }
+
+export enum MappingResultMode {
+  MERGE = 'merge',
+  IGNORE = 'ignore',
+}
