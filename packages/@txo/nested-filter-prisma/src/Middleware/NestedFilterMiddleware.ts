@@ -30,7 +30,7 @@ RESULT extends ObjectWithNestedArgMap
   }
 
   const resultOrResultList = await resolve(source, args, context, info)
-  if (!isLeafType(info.returnType)) {
+  if (!isLeafType(info.returnType) && !(resultOrResultList instanceof Date)) {
     if (resultOrResultList) {
       if (Array.isArray(resultOrResultList)) {
         let modified = false
