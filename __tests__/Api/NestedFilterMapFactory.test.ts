@@ -6,22 +6,23 @@
 
 import { produceNestedFilterDeclarationMap } from '@txo/nested-filter-prisma/src'
 
-import { nestedFilterList } from '../../example/NestedFilters'
+import { CommentNestedFilter, CommentNestedFilterExtended } from '../../example/NestedFilters'
 
 describe('NestedFilterMapFactory', () => {
   test('produceNestedFilterDeclarationMap - merge two of the same type', () => {
+    const nestedFilterList = [
+      CommentNestedFilter,
+      CommentNestedFilterExtended,
+    ]
+
     const nestedFilterMap = produceNestedFilterDeclarationMap(nestedFilterList)
     expect(nestedFilterMap).toEqual({
       Comment: {
         type: 'Comment',
-        getPath: undefined,
         mapping: {
-          'Author.id': {
-            'author.id': true,
-          },
-          'Post.id': {
-            'post.id': true,
-          },
+          Author: CommentNestedFilterExtended.declaration.mapping.Author,
+          Post: CommentNestedFilter.declaration.mapping.Post,
+          Comment: CommentNestedFilter.declaration.mapping.Comment,
         },
       },
     })

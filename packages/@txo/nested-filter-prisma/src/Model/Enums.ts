@@ -16,6 +16,8 @@ export enum IgnoreRuleType {
 }
 
 export enum MappingResultMode {
+  ASSIGN = 'assign',
   MERGE = 'merge',
   IGNORE = 'ignore',
+  INVALID = 'invalid',
 }

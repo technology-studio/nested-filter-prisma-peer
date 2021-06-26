@@ -4,10 +4,12 @@
  * @Copyright: Technology Studio
 **/
 
-export const parseTypeAttributePath = (typeAttributePath: string): { type: string, attribute: string } | undefined => {
-  const typeAndAttributePair = typeAttributePath.split('.')
+import { Type, TypeAttributePath } from '../Model'
+
+export const parseTypeAttributePath = (typeAttributePath: TypeAttributePath): { type: Type, attribute: string } | undefined => {
+  const typeAndAttributePair = (typeAttributePath as string).split('.')
   if (typeAndAttributePair.length === 2) {
-    const [type, attribute] = typeAndAttributePair
+    const [type, attribute] = typeAndAttributePair as [Type, string]
     return { type, attribute }
   }
 }

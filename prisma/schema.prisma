@@ -10,23 +10,26 @@ datasource db {
 }
 
 model Post {
-  id              String      @default(cuid()) @id
-  description     String
-  commentList     Comment[]
+  id          String    @id @default(cuid())
+  deleted     Boolean   @default(false)
+  description String
+  commentList Comment[]
 }
 
 model Comment {
-  id              String      @default(cuid()) @id
-  text            String
-  postId          String
-  post            Post        @relation(fields: [postId], references: [id])
-  authorId        String
-  author          Author      @relation(fields: [authorId], references: [id])
+  id       String  @id @default(cuid())
+  deleted  Boolean @default(false)
+  text     String
+  postId   String
+  post     Post    @relation(fields: [postId], references: [id])
+  authorId String
+  author   Author  @relation(fields: [authorId], references: [id])
 }
 
 model Author {
-  id              String      @default(cuid()) @id
-  firstName       String
-  lastName        String
-  commentList     Comment[]
+  id          String    @id @default(cuid())
+  deleted     Boolean   @default(false)
+  firstName   String
+  lastName    String
+  commentList Comment[]
 }
