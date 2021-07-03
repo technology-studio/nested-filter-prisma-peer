@@ -4,4 +4,4 @@
  * @Copyright: Technology Studio
 **/
 
-export * from './ExtensionManager'
+export * from './PluginManager'

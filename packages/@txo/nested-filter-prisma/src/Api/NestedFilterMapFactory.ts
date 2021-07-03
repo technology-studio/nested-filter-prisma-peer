@@ -8,29 +8,30 @@ import { NestedFilterDefinitionMode } from '../Model'
 import type {
   NestedFilterDeclaration,
   NestedFilterCollection,
+  NestedFilterContext,
   NestedFilterDefinition,
   NestedFilterMap,
   NestedFilterMapping,
   NestedFilterMappingValue,
-  ContextWithNestedFilterMap,
-  IgnoreRuleMapping,
+  Type,
+  GetWhere,
 } from '../Model/Types'
 
 import { createNestedFilter } from './NestedFilter'
 
-const isNestedFilterDefinition = <CONTEXT>(
+const isNestedFilterDefinition = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
   collection: NestedFilterCollection<CONTEXT>,
 ): collection is NestedFilterDefinition<CONTEXT> => (
     collection && typeof collection === 'object' && 'mode' in collection
   )
 
-const isNestedFilterCollectionMap = <CONTEXT>(
+const isNestedFilterCollectionMap = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
   collection: NestedFilterCollection<CONTEXT>,
 ): collection is { [key: string]: NestedFilterCollection<CONTEXT> } => (
     collection && typeof collection === 'object' && !('mode' in collection)
   )
 
-const traverseNestedFilterCollection = <CONTEXT>(
+const traverseNestedFilterCollection = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
   collection: NestedFilterCollection<CONTEXT>,
   callback: (nestedFilterDefinition: NestedFilterDefinition<CONTEXT>) => void,
 ): void => {
@@ -45,10 +46,13 @@ const traverseNestedFilterCollection = <CONTEXT>(
   }
 }
 
-const mergeNestedFilterMappingValues = (
-  existingMappingValue: NestedFilterMappingValue,
-  newMappingValue: NestedFilterMappingValue,
-): NestedFilterMappingValue => {
+const mergeNestedFilterMappingValues = <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>> (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  existingMappingValue: NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  newMappingValue: NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, any>,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, any> => {
   if (typeof existingMappingValue === 'boolean' || typeof newMappingValue === 'boolean') {
     throw new Error('Mapping value can\'t be boolean, not supported yet')
   }
@@ -59,65 +63,44 @@ const mergeNestedFilterMappingValues = (
   }
 }
 
-const mergeNestedFilterMappings = (
-  existingMapping: NestedFilterMapping,
-  newMapping: NestedFilterMapping,
+const mergeNestedFilterMappings = <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type> (
+  existingMapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>>,
+  newMapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>>,
   mode: NestedFilterDefinitionMode, // NOTE: to be used later for different merging strategies
-): NestedFilterMapping => (
-  Object.keys(newMapping).reduce((nextMapping, key) => {
-    if (key in nextMapping) {
-      nextMapping[key] = mergeNestedFilterMappingValues(
-        nextMapping[key],
-        newMapping[key],
-      )
-    } else {
-      nextMapping[key] = newMapping[key]
-    }
-    return nextMapping
-  }, {
-    ...existingMapping,
-  })
-)
-const mergeNestedFilterIgnoreRuleMapping = (
-  existingIgnore: IgnoreRuleMapping | undefined,
-  newIgnore: IgnoreRuleMapping | undefined,
-  mode: NestedFilterDefinitionMode, // NOTE: to be used later for different merging strategies
-): IgnoreRuleMapping | undefined => existingIgnore && newIgnore && ({
-  ...existingIgnore,
-  ...newIgnore,
-})
+): NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>> => (
+    Object.keys(newMapping).reduce((nextMapping, _key) => {
+      const key = _key as TYPE
+      if (key in nextMapping) {
+        nextMapping[key] = mergeNestedFilterMappingValues(
+          nextMapping[key],
+          newMapping[key],
+        )
+      } else {
+        nextMapping[key] = newMapping[key]
+      }
+      return nextMapping
+    }, {
+      ...existingMapping,
+    })
+  )
 
-const mergeNestedFilterDeclarations = <CONTEXT>(
-  existingDeclaration: NestedFilterDeclaration<CONTEXT>,
-  newDeclaration: NestedFilterDeclaration<CONTEXT>,
+const mergeNestedFilterDeclarations = <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type>(
+  existingDeclaration: NestedFilterDeclaration<SOURCE, ARGS, CONTEXT, TYPE>,
+  newDeclaration: NestedFilterDeclaration<SOURCE, ARGS, CONTEXT, TYPE>,
   mode: NestedFilterDefinitionMode,
-): NestedFilterDeclaration<CONTEXT> => ({
+): NestedFilterDeclaration<SOURCE, ARGS, CONTEXT, TYPE> => ({
     type: existingDeclaration.type,
     mapping: mergeNestedFilterMappings(
       existingDeclaration.mapping,
       newDeclaration.mapping,
       mode,
     ),
-    ignore: mergeNestedFilterIgnoreRuleMapping(
-      existingDeclaration.ignore,
-      newDeclaration.ignore,
-      mode,
-    ),
-    getPath: (
-      newDeclaration.getPath && existingDeclaration.getPath
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ? attributes => newDeclaration.getPath!({
-          ...attributes,
-          fallbackGetPath: existingDeclaration.getPath,
-        })
-        : newDeclaration.getPath ?? existingDeclaration.getPath
-    ),
   })
 
-export const produceNestedFilterDeclarationMap = <CONTEXT>(
+export const produceNestedFilterDeclarationMap = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
   collection: NestedFilterCollection<CONTEXT>,
-): Record<string, NestedFilterDeclaration<CONTEXT>> => {
-  const declarationMap: Record<string, NestedFilterDeclaration<CONTEXT>> = {}
+): Record<string, NestedFilterDeclaration<unknown, unknown, CONTEXT, Type>> => {
+  const declarationMap: Record<string, NestedFilterDeclaration<unknown, unknown, CONTEXT, Type>> = {}
   traverseNestedFilterCollection(collection, ({ mode, declaration }) => {
     const existingDeclaration = declarationMap[declaration.type]
     if (existingDeclaration) {
@@ -133,13 +116,12 @@ export const produceNestedFilterDeclarationMap = <CONTEXT>(
   return declarationMap
 }
 
-export const createNestedFilterMap = <CONTEXT extends ContextWithNestedFilterMap<CONTEXT>>(
+export const createNestedFilterMap = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
   collection: NestedFilterCollection<CONTEXT>,
 ): NestedFilterMap<CONTEXT> => {
   const declarationMap = produceNestedFilterDeclarationMap(collection)
   return Object.keys(declarationMap).reduce((nestedFilterMap: NestedFilterMap<CONTEXT>, type) => {
-    nestedFilterMap[type] = createNestedFilter(declarationMap[type])
-
+    nestedFilterMap[type as Type] = createNestedFilter(declarationMap[type])
     return nestedFilterMap
   }, {})
 }

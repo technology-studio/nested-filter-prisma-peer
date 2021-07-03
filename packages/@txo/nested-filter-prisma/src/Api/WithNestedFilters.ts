@@ -4,122 +4,80 @@
  * @Copyright: Technology Studio
 **/
 
-import type { GraphQLResolveInfo } from 'graphql'
-import type { Prismify } from '@txo/nexus-prisma'
-import { extensionManager, ExtensionOptions } from '@txo-peer-dep/nested-filter-prisma'
+import { pluginManager, PluginOptions, ResolverArguments } from '@txo-peer-dep/nested-filter-prisma'
 
 import type {
-  ContextWithNestedFilterMap,
   NestedFilterMapping,
-  ObjectWithNestedArgMap,
-  InjectedContext,
-  IgnoreRuleMapping,
   Type,
+  GetWhere,
+  NestedFilterContext,
 } from '../Model/Types'
 
-import { addNestedFilters } from './AddNestedFilters'
-import { addEntityToNestedArgMap } from './AddEntityToNestedArgMap'
-import { reportMissingNestedFilters } from './ReportNestedFilters'
+// import { reportMissingNestedFilters } from './ReportNestedFilters'
+import { resolveMapping } from './Mapping'
+import { MappingResultMode, MappingResultMap } from '../Model'
 
-type InjectedArgs<ARGS> = ARGS extends { where: infer WHERE }
-  ? Omit<ARGS, 'where'> & { where: { AND: WHERE[] }}
-  : ARGS & { where: { AND: [] } }
+const containsWhere = <ARGS>(args: ARGS): args is ARGS & { where: unknown } => (
+  args && 'where' in args
+)
 
-export const withNestedFilters = ({
+export const withNestedFilters = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type>({
   mapping,
-  ignore,
-  resultType,
-  extensionOptions,
+  type,
+  pluginOptions,
+  resolverArguments,
+  mappingResultMapList,
 }: {
   // TODO: add support to call resolver for filters so we allow composite constructs shared for other resolvers
-  mapping: NestedFilterMapping,
-  ignore?: IgnoreRuleMapping,
-  resultType: Type,
-  extensionOptions?: ExtensionOptions,
-}) => <SOURCE, WHERE, ARGS extends { where?: WHERE }, CONTEXT extends ContextWithNestedFilterMap<CONTEXT>, RETURN_TYPE>(
-  resolver: (
-    source: SOURCE,
-    args: Prismify<InjectedArgs<ARGS>>,
-    context: InjectedContext<CONTEXT>,
-    info: GraphQLResolveInfo,
-    originalArgs: ARGS
-  ) => Promise<RETURN_TYPE>,
-) => async (
-    source: SOURCE,
-    args: ARGS,
-    context: CONTEXT,
-    info: GraphQLResolveInfo,
-  ): Promise<RETURN_TYPE> => {
-    const additionalConditionList = extensionManager.produceConditionList(
-      extensionOptions,
-      source,
-      args,
-      context,
-      info,
-    )
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const nestedArgMap = (source as ObjectWithNestedArgMap).nestedArgMap!
-
-    reportMissingNestedFilters(mapping, {
-      ...context.nestedFilterMap[resultType]?.declaration.ignore,
-      ...ignore,
-    }, nestedArgMap)
-
-    const addNestedFiltersBaseAttributes = {
-      nestedArgMap,
-      mapping,
-      additionalConditionList,
-      context,
-      defaultNestedFilterType: resultType,
-    }
-    const nextWhere = addNestedFilters({
-      ...addNestedFiltersBaseAttributes,
-      conditionList: args.where ? [args.where] : [],
-    })
-
-    const nextArgs = {
-      ...args,
-      where: nextWhere,
-    }
-
-    const injectedContext = context as InjectedContext<CONTEXT>
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    injectedContext.withNestedFilters = (mapping: NestedFilterMapping): any => {
-      return addNestedFilters({
-        ...addNestedFiltersBaseAttributes,
-        mapping,
-      })
-    }
-    const resultOrResultList = await resolver(
-      source,
-      nextArgs as Prismify<InjectedArgs<ARGS>>,
-      injectedContext,
-      info,
-      args,
-    )
-
-    delete (injectedContext as Record<string, unknown>).withNestedFilters
-
-    if (Array.isArray(resultOrResultList)) {
-      return resultOrResultList.map(result => {
-        if (!result) {
-          return result
-        }
-        return addEntityToNestedArgMap(
-          result,
-          nestedArgMap,
-          resultType,
-        )
-      }) as unknown as RETURN_TYPE
-    }
-    if (!resultOrResultList) {
-      return resultOrResultList
-    }
-    return addEntityToNestedArgMap(
-      resultOrResultList,
-      nestedArgMap,
-      resultType,
-    )
+  mapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>>,
+  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  type: Type,
+  pluginOptions?: PluginOptions,
+  mappingResultMapList: MappingResultMap<unknown>[],
+}): Promise<GetWhere<TYPE>> => {
+  const subWhereList = []
+  if (containsWhere(resolverArguments.args)) {
+    subWhereList.push(resolverArguments.args.where)
   }
+  const mappingResultMap = await resolveMapping(
+    mapping,
+    resolverArguments,
+  )
+
+  mappingResultMapList.push(mappingResultMap)
+
+  const nestedArgMap = resolverArguments.context.nestedArgMap
+
+  Object.keys(mappingResultMap).forEach(type => {
+    const mappingResult = mappingResultMap[type as Type]
+    if (mappingResult) {
+      const { mode, where } = mappingResult
+      switch (mode) {
+        case MappingResultMode.ASSIGN:
+        case MappingResultMode.MERGE: {
+          if (type in nestedArgMap && where) {
+            subWhereList.push(where)
+          }
+          break
+        }
+        case MappingResultMode.IGNORE:
+        case MappingResultMode.INVALID:
+          break
+        default:
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          throw new Error(`not processed mapping result mode (${mode})`)
+      }
+    }
+  })
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const where = {
+    AND: subWhereList,
+  } as GetWhere<TYPE>
+
+  return pluginManager.processWhere(
+    where,
+    resolverArguments,
+    pluginOptions,
+  )
+}

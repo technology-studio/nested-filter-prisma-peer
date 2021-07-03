@@ -10,7 +10,14 @@ export enum NestedFilterDefinitionMode {
   // TODO: later OVERRIDE = 'override',
 }
 
-export enum IgnoreRuleType {
+export enum TypeIgnoreRuleMode {
   IGNORED = 'ignored',
   SUPPRESSED_BY = 'suppressed-by',
+}
+
+export enum MappingResultMode {
+  ASSIGN = 'assign',
+  MERGE = 'merge',
+  IGNORE = 'ignore',
+  INVALID = 'invalid',
 }

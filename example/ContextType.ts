@@ -5,9 +5,9 @@
 **/
 
 import type { PrismaClient } from '@prisma/client'
-import type { NestedFilterMap } from '@txo/nested-filter-prisma/src'
+import type { WithNestedFilterContext } from '@txo/nested-filter-prisma/src'
 
-export type Context = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Context<SOURCE=any, ARGS=any> = WithNestedFilterContext<SOURCE, ARGS, {
   prisma: PrismaClient,
-  nestedFilterMap: NestedFilterMap<Context>,
-}
+}>
