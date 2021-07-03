@@ -4,8 +4,7 @@
  * @Copyright: Technology Studio
 **/
 
-export * from './AddEntityToNestedArgMap'
-export * from './AddNestedFilters'
+export * from './MappingFunction'
 export * from './NestedFilter'
 export * from './NestedFilterMapFactory'
 export * from './WithNestedFilters'

@@ -6,19 +6,21 @@
 
 import type { GraphQLResolveInfo } from 'graphql'
 
-export type Condition = unknown
+export type ResolverArguments<SOURCE, ARGS, CONTEXT> = {
+  source: SOURCE,
+  args: ARGS,
+  context: CONTEXT,
+  info: GraphQLResolveInfo,
+}
 
-export interface Extension {
-  populateConditionList: <SOURCE, ARGS, CONTEXT>(
-    conditionList: Condition[],
-    extensionOptions: ExtensionOptions | undefined,
-    source: SOURCE,
-    args: ARGS,
-    context: CONTEXT,
-    info: GraphQLResolveInfo
-  ) => void,
+export interface Plugin {
+  processWhere: <SOURCE, ARGS, CONTEXT, WHERE>(
+    where: WHERE,
+    resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+    extensionOptions: PluginOptions | undefined,
+  ) => WHERE,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ExtensionOptions {
+export interface PluginOptions {
 }

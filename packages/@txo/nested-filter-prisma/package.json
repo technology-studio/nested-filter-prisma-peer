@@ -24,6 +24,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
+    "@txo/log": "^2.0.0",
     "@txo/nexus-prisma": "^1.0.0",
     "@txo/types": "^1.1.0",
     "lodash.get": "^4.4.2",

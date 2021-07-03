@@ -4,57 +4,136 @@
  * @Copyright: Technology Studio
 **/
 
-import { GraphQLResolveInfo, isLeafType } from 'graphql'
+import { GraphQLResolveInfo, isLeafType, getNamedType } from 'graphql'
+import { Log } from '@txo/log'
 
-import type { ObjectWithNestedArgMap } from '../Model/Types'
+import { withNestedFilters } from '../Api/WithNestedFilters'
+import type {
+  GetWhere,
+  MappingResultMap,
+  NestedArgMap,
+  NestedFilterContext,
+  NestedResultMap,
+  NestedResultNode,
+  Type,
+  WithNestedFiltersAttributes,
+} from '../Model/Types'
+import { reportMissingNestedFilters } from '../Api'
+
+const log = new Log('txo.nested-filter-prisma.Middleware.NestedFilterMiddleware')
+
+const getPathList = (path: GraphQLResolveInfo['path']): string[] => [
+  ...(path.prev ? getPathList(path.prev) : []),
+  path.key.toString(),
+]
+
+const getOrCreateNode = (map: NestedResultMap, key: string): NestedResultNode => {
+  const value = map[key]
+  if (!value) {
+    map[key] = { children: {} }
+  }
+  return map[key]
+}
+
+const setNestedResultAndGetNestedArgMap = (
+  nestedResultMap: NestedResultMap,
+  pathList: string[],
+  nestedArgMap: NestedArgMap,
+  nestedResultNode?: NestedResultNode,
+): NestedArgMap => {
+  if (!pathList.length) {
+    throw new Error('Empty path')
+  }
+  const [key, ...restPathList] = pathList
+
+  log.debug('setNestedResultAndGetNestedArgMap', { key, restPathList, nestedResultMap, nestedArgMap, nestedResultNode })
+
+  if (restPathList.length > 1) {
+    const { type, result, children } = getOrCreateNode(nestedResultMap, key)
+
+    if (type && result) {
+      nestedArgMap[type] = result
+    }
+    return setNestedResultAndGetNestedArgMap(
+      children,
+      restPathList,
+      nestedArgMap,
+      nestedResultNode,
+    )
+  }
+
+  if (nestedResultNode) {
+    nestedResultMap[key] = nestedResultNode
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    nestedArgMap[nestedResultNode.type!] = nestedResultNode.result
+  }
+
+  log.debug('setNestedResultAndGetNestedArgMap final', { key, restPathList, nestedResultMap, nestedArgMap, nestedResultNode })
+  return nestedArgMap
+}
 
 export const nestedFilterMiddleware = async <
-SOURCE extends ObjectWithNestedArgMap,
+SOURCE,
 ARGS,
-CONTEXT,
-RESULT extends ObjectWithNestedArgMap
+CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>,
+RESULT
 >(
-  resolve: (source: SOURCE | undefined, args: ARGS, context: CONTEXT, info: GraphQLResolveInfo) => Promise<RESULT | RESULT[]>,
-  source: SOURCE | undefined,
+  resolve: (source: SOURCE, args: ARGS, context: CONTEXT, info: GraphQLResolveInfo) => Promise<RESULT>,
+  source: SOURCE,
   args: ARGS,
   context: CONTEXT,
   info: GraphQLResolveInfo,
-): Promise<RESULT | RESULT[]> => {
-  const nestedArgMap = source?.nestedArgMap ?? {}
-  if (!isLeafType(info.parentType) && !source?.nestedArgMap) {
-    if (info.path.prev) {
-      throw Error('nestedArgMap property missing in source for path: ' + JSON.stringify(info.path))
-    }
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    source = { ...source, nestedArgMap } as SOURCE
-  }
+): Promise<RESULT> => {
+  const pathList = getPathList(info.path)
 
-  const resultOrResultList = await resolve(source, args, context, info)
-  if (!isLeafType(info.returnType) && !(resultOrResultList instanceof Date)) {
-    if (resultOrResultList) {
-      if (Array.isArray(resultOrResultList)) {
-        let modified = false
-        const nextResultList = resultOrResultList.map(result => {
-          if (result && !result.nestedArgMap) {
-            modified = true
-            return {
-              ...result,
-              nestedArgMap,
-            }
-          }
-          return result
-        })
-        return modified ? nextResultList : resultOrResultList
-      }
-    }
-
-    if (resultOrResultList && typeof resultOrResultList === 'object' && !resultOrResultList.nestedArgMap) {
-      return {
-        ...resultOrResultList,
-        nestedArgMap,
-      }
+  let nestedResultNode: NestedResultNode | undefined
+  if (!(isLeafType(info.parentType) || source instanceof Date || info.path.prev === undefined)) {
+    nestedResultNode = {
+      result: source,
+      type: getNamedType(info.parentType).name as Type,
+      children: {},
     }
   }
 
-  return resultOrResultList
+  const nestedArgMap = setNestedResultAndGetNestedArgMap(
+    context.nestedResultMap,
+    pathList,
+    {},
+    nestedResultNode,
+  )
+  context.nestedArgMap = nestedArgMap
+
+  const resolverContext = context
+
+  const mappingResultMapList: MappingResultMap<unknown>[] = []
+  resolverContext.withNestedFilters = async <TYPE extends Type>({
+    type,
+    mapping,
+    pluginOptions,
+  }: WithNestedFiltersAttributes<SOURCE, ARGS, CONTEXT, TYPE>): Promise<GetWhere<TYPE>> => {
+    const resolverArguments = {
+      source, args, context: resolverContext, info,
+    }
+    return withNestedFilters({
+      mapping,
+      type: info.path.typename as Type,
+      resolverArguments,
+      pluginOptions,
+      mappingResultMapList,
+    })
+  }
+  const previousNestedArgMap = context.nestedArgMap
+
+  const result = await resolve(source, args, resolverContext, info)
+
+  log.debug('nestedFilterMiddleware after resolve', { mappingResultMapList, nestedArgMap: context.nestedArgMap })
+  reportMissingNestedFilters(
+    mappingResultMapList,
+    context.nestedArgMap,
+  )
+
+  context.nestedArgMap = previousNestedArgMap
+  delete (resolverContext as Record<string, unknown>).withNestedFilters
+
+  return result
 }

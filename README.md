@@ -125,27 +125,28 @@ export const nestedFilterList = [
 
 ```
 
-#### **`Field declaration on Author type`**
+#### **`Using nestedFilters on field declaration on Author type`**
 ```typescript
 import { nonNull, extendType } from 'nexus'
 
-import { withNestedFilters } from '@txo/nested-filter-prisma'
+import { mapFilter, ignored } from '@txo/nested-filter-prisma'
 
 export const authorCommentListField = extendType({
   type: 'Author',
   definition: t => {
     t.list.field('commentList', {
       type: 'Comment',
-      resolve: withNestedFilters({
-        mapping: {
-          'Post.id': true,
-          'Author.id': true,
-        },
-        resultType: 'Comment',
-      })(async (parent, args, ctx, info) => {
+      resolve: async (parent, args, ctx, info) => {
         return ctx.prisma.comment.findMany({
-          where: args.where,
-        }))
+          where: ctx.withNestedFilters<'Comment'>({
+            type: 'Comment',
+            mapping: {
+              Post: { post: mapFilter('Post') },
+              Comment: ignored(),
+              Author: { author: mapFilter('Author') },
+            },
+          })
+        })
       }),
     })
   },
