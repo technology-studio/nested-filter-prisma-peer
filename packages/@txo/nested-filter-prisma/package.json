@@ -31,6 +31,6 @@
     "lodash.set": "^4.3.2"
   },
   "peerDependencies": {
-    "@txo-peer-dep/nested-filter-prisma": "^1.0.0"
+    "@txo-peer-dep/nested-filter-prisma": "^2.0.0"
   }
 }
