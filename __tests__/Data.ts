@@ -10,7 +10,7 @@ import { GraphQLObjectType, GraphQLList, GraphQLResolveInfo } from 'graphql'
 
 import type { Context } from '../example/ContextType'
 
-const cloneAndAddResult = (map: NestedResultMap, pathList: string[], node: NestedResultNode): NestedResultMap => {
+const cloneAndAddResult = (map: NestedResultMap, pathList: string[], resultNode: NestedResultNode): NestedResultMap => {
   if (pathList.length > 1) {
     const [key, ...restPathList] = pathList
     const node = map[key] ?? { children: {} }
@@ -21,7 +21,7 @@ const cloneAndAddResult = (map: NestedResultMap, pathList: string[], node: Neste
         children: cloneAndAddResult(
           node.children,
           restPathList,
-          node,
+          resultNode,
         ),
       },
     }
@@ -29,7 +29,7 @@ const cloneAndAddResult = (map: NestedResultMap, pathList: string[], node: Neste
   const [key] = pathList
   return {
     ...map,
-    [key]: node,
+    [key]: resultNode,
   }
 }
 
@@ -108,7 +108,7 @@ export const LEVEL_1_POST_NESTED_RESULT_MAP: NestedResultMap = {
 export const LEVEL_2_AUTHOR_INFO = {
   fieldName: 'author',
   path: { prev: { prev: LEVEL_1_COMMENT_LIST_INFO.path, key: 0 }, key: 'author', typename: 'Comment' },
-  parentType: LEVEL_0_POST_INFO.returnType,
+  parentType: LEVEL_1_COMMENT_LIST_INFO.returnType,
   returnType: new GraphQLObjectType({
     name: 'Author',
     fields: {},

@@ -39,10 +39,17 @@ export const mapValue = (
       options: resultOptions,
     }
   }
+
   return {
     mode: MappingResultMode.MERGE,
     where: filterValue as WHERE,
-    options: resultOptions,
+    options: {
+      ...resultOptions,
+      typeUsageRuleList: [
+        ...resultOptions.typeUsageRuleList,
+        { type, typeAttributePath },
+      ],
+    },
   }
 }
 
@@ -53,6 +60,7 @@ export const mapFilter = (
   resultOptions: MappingResultOptions,
   resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
 ): Promise<MappingResult<WHERE>> => {
+  log.debug('mapFilter', { filterType, type, resultOptions, nestedArgMap: resolverArguments.context.nestedArgMap })
   const nestedFilter = resolverArguments.context.nestedFilterMap[filterType]
   if (!nestedFilter) {
     throw new Error(`nested filter (${filterType}) is not registered yet`)

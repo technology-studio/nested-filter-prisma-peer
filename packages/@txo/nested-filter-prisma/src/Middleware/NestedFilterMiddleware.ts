@@ -10,6 +10,7 @@ import { Log } from '@txo/log'
 import { withNestedFilters } from '../Api/WithNestedFilters'
 import type {
   GetWhere,
+  MappingResultMap,
   NestedArgMap,
   NestedFilterContext,
   NestedResultMap,
@@ -17,6 +18,7 @@ import type {
   Type,
   WithNestedFiltersAttributes,
 } from '../Model/Types'
+import { reportMissingNestedFilters } from '../Api'
 
 const log = new Log('txo.nested-filter-prisma.Middleware.NestedFilterMiddleware')
 
@@ -102,6 +104,8 @@ RESULT
   context.nestedArgMap = nestedArgMap
 
   const resolverContext = context
+
+  const mappingResultMapList: MappingResultMap<unknown>[] = []
   resolverContext.withNestedFilters = async <TYPE extends Type>({
     type,
     mapping,
@@ -115,11 +119,18 @@ RESULT
       type: info.path.typename as Type,
       resolverArguments,
       pluginOptions,
+      mappingResultMapList,
     })
   }
   const previousNestedArgMap = context.nestedArgMap
 
   const result = await resolve(source, args, resolverContext, info)
+
+  log.debug('nestedFilterMiddleware after resolve', { mappingResultMapList, nestedArgMap: context.nestedArgMap })
+  reportMissingNestedFilters(
+    mappingResultMapList,
+    context.nestedArgMap,
+  )
 
   context.nestedArgMap = previousNestedArgMap
   delete (resolverContext as Record<string, unknown>).withNestedFilters

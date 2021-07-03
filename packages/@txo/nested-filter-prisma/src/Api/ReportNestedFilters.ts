@@ -6,82 +6,152 @@
 
 // import get from 'lodash.get'
 
-import { IgnoreRuleType } from '../Model'
+import { ResolverArguments } from '@txo-peer-dep/nested-filter-prisma'
+
+import { TypeIgnoreRuleMode, MappingResultMode } from '../Model'
 import type {
-  IgnoreRule,
-  // NestedArgMap,
-  // NestedFilterMapping,
-  // Type,
+  MappingResult,
+  MappingResultMap,
+  MappingResultOptions,
+  NestedArgMap,
+  NestedFilterContext,
+  Type,
   TypeAttributePath,
+  TypeIgnoreRule,
+  TypeUsageRule,
 } from '../Model/Types'
 
-// import { parseTypeAttributePath } from './ParseTypeAttributePath'
+export const suppressedBy = (
+  suppressedByType: Type,
+  suppressedByTypeAttributePath: TypeAttributePath,
+) => async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+  type: Type,
+  resultOptions: MappingResultOptions,
+  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+): Promise<MappingResult<WHERE>> => {
+  const typeIgnoreRule: TypeIgnoreRule = {
+    type,
+    mode: TypeIgnoreRuleMode.SUPPRESSED_BY,
+    suppressedBy: {
+      type: suppressedByType,
+      typeAttributePath: suppressedByTypeAttributePath,
+    },
+  }
+  return {
+    mode: MappingResultMode.IGNORE,
+    options: {
+      ...resultOptions,
+      typeIgnoreRuleList: [
+        ...resultOptions.typeIgnoreRuleList,
+        typeIgnoreRule,
+      ],
+    },
+  }
+}
 
-export const suppressedBy = (typeAttributePath: TypeAttributePath): IgnoreRule => ({
-  type: IgnoreRuleType.SUPPRESSED_BY,
-  suppressedBy: typeAttributePath,
-})
+export const ignored = () => async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+  type: Type,
+  resultOptions: MappingResultOptions,
+  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+): Promise<MappingResult<WHERE>> => {
+  const typeIgnoreRule: TypeIgnoreRule = {
+    type,
+    mode: TypeIgnoreRuleMode.IGNORED,
+  }
+  return {
+    mode: MappingResultMode.IGNORE,
+    options: {
+      ...resultOptions,
+      typeIgnoreRuleList: [
+        ...resultOptions.typeIgnoreRuleList,
+        typeIgnoreRule,
+      ],
+    },
+  }
+}
 
-export const ignored = (): IgnoreRule => ({
-  type: IgnoreRuleType.IGNORED,
-})
+type TypeMapping = {
+  usageSet: Set<string>,
+}
 
-// const isIgnored = (
-//   type: Type,
-//   nestedFilterMapping: NestedFilterMapping,
-//   ignoreRuleMapping: IgnoreRuleMapping,
-//   nestedArgMap: NestedArgMap,
-//   errorMessageList: string[],
-// ): boolean => {
-//   const ignoreRule = ignoreRuleMapping[type]
-//   if (ignoreRule) {
-//     switch (ignoreRule.type) {
-//       case IgnoreRuleType.IGNORED:
-//         return true
-//       case IgnoreRuleType.SUPPRESSED_BY: {
-//         if (nestedFilterMapping[ignoreRule.suppressedBy]) {
-//           const nestedArgValue = get(nestedArgMap, ignoreRule.suppressedBy)
-//           if (nestedArgValue !== undefined) {
-//             return true
-//           }
-//           errorMessageList.push(`Suppression for type (${type}) by type attribute path (${ignoreRule.suppressedBy}) doesn't contain value in nested arg map.`)
-//           return false
-//         }
-//         errorMessageList.push(`Suppression for type (${type}) by type attribute path (${ignoreRule.suppressedBy}) doesn't exist.`)
-//         return false
-//       }
-//       default:
-//         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-//         throw new Error(`Not implemented ignore rule type (${ignoreRule})`)
-//     }
-//   }
-//   return false
-// }
+export const reportMissingNestedFilters = (
+  mappingResultMapList: MappingResultMap<unknown>[],
+  nestedArgMap: NestedArgMap,
+): void => {
+  const errorMessageList: string[] = []
 
-// export const reportMissingNestedFilters = (
-//   nestedFilterMapping: NestedFilterMapping,
-//   ignoreRuleMapping: IgnoreRuleMapping,
-//   nestedArgMap: NestedArgMap,
-// ): void => {
-//   const errorMessageList: string[] = []
-//   if (!nestedArgMap) {
-//     return
-//   }
-//   const mappingTypeAttributePathList = Object.keys(nestedFilterMapping)
-//   const notMappedTypeList = Object.keys(nestedArgMap)
-//     .filter(type => (
-//       type !== 'parent' &&
-//       !isIgnored(type as Type, nestedFilterMapping, ignoreRuleMapping, nestedArgMap, errorMessageList) &&
-//       mappingTypeAttributePathList.every(
-//         mappingTypeAttributePath => parseTypeAttributePath(mappingTypeAttributePath)?.type !== type,
-//       )
-//     ))
+  const typeMappingMap: Record<string, TypeMapping> = {}
+  const getOrCreate = (type: string): TypeMapping => {
+    let typeMapping = typeMappingMap[type]
+    if (!typeMapping) {
+      typeMapping = {
+        usageSet: new Set(),
+      }
+      typeMappingMap[type] = typeMapping
+    }
+    return typeMapping
+  }
 
-//   if (notMappedTypeList.length > 0) {
-//     throw new Error(
-//       `Nested filters has not been mapped for following types (${notMappedTypeList.join(',')}).` +
-//       (errorMessageList.length > 0 ? ' ' : '') +
-//       errorMessageList.join(' '),
-//     )
-//   }
-// }
+  const iterateValidRules = ({
+    onIgnore,
+    onUsage,
+  }: {
+    onIgnore?: (typeIgnoreRule: TypeIgnoreRule) => void,
+    onUsage?: (typeUsageRule: TypeUsageRule) => void,
+  }): void => {
+    mappingResultMapList.forEach(mappingResultMap => {
+      Object.keys(mappingResultMap).forEach(type => {
+        const mappingResult = mappingResultMap[type as Type]
+        if (mappingResult) {
+          const {
+            mode,
+            options: {
+              typeIgnoreRuleList,
+              typeUsageRuleList,
+            },
+          } = mappingResult
+          if (mode !== MappingResultMode.INVALID) {
+            onIgnore && typeIgnoreRuleList.forEach(onIgnore)
+            onUsage && typeUsageRuleList.forEach(onUsage)
+          }
+        }
+      })
+    })
+  }
+
+  iterateValidRules({
+    onIgnore: ({ type, mode }) => {
+      if (mode === TypeIgnoreRuleMode.IGNORED) {
+        getOrCreate(type)
+      }
+    },
+    onUsage: ({ type, typeAttributePath }) => {
+      getOrCreate(type).usageSet.add(typeAttributePath)
+    },
+  })
+
+  iterateValidRules({
+    onIgnore: typeIgnoreRule => {
+      if (typeIgnoreRule.mode === TypeIgnoreRuleMode.SUPPRESSED_BY) {
+        const { type, suppressedBy } = typeIgnoreRule
+        if (typeMappingMap[suppressedBy.type]?.usageSet.has(suppressedBy.typeAttributePath)) {
+          getOrCreate(type)
+        }
+      }
+    },
+  })
+
+  const mappedTypedList = Object.keys(typeMappingMap)
+
+  const notMappedTypeList = Object.keys(nestedArgMap).filter(
+    type => mappedTypedList.every(mappedType => mappedType !== type),
+  )
+
+  if (notMappedTypeList.length > 0) {
+    throw new Error(
+      `Nested filters has not been mapped for following types (${notMappedTypeList.join(',')}).` +
+      (errorMessageList.length > 0 ? ' ' : '') +
+      errorMessageList.join(' '),
+    )
+  }
+}

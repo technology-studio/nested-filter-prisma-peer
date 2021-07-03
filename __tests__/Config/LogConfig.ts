@@ -30,7 +30,8 @@ configManager.update({
   levelOverride: {
     level: Level.DEBUG,
     namespacePatternList: [
-      'txo.nested-filter-prisma.Middleware.NestedFilterMiddleware',
+      // 'txo.nested-filter-prisma.Middleware.NestedFilterMiddleware',
+      // 'txo.nested-filter-prisma.Api.MappingFunction',
       // 'txo.nested-filter-prisma.Api.Mapping',
     ],
   },

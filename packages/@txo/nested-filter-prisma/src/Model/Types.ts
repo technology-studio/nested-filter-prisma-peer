@@ -8,7 +8,7 @@
 import type { ResolverArguments, PluginOptions } from '@txo-peer-dep/nested-filter-prisma'
 
 import type {
-  IgnoreRuleType,
+  TypeIgnoreRuleMode,
   NestedFilterDefinitionMode,
   MappingResultMode,
 } from './Enums'
@@ -47,26 +47,42 @@ export type NestedFilter<CONTEXT extends NestedFilterContext<unknown, unknown, C
   declaration: NestedFilterDeclaration<unknown, unknown, CONTEXT, TYPE>,
 }
 
-export type IgnoreRule = {
-  type: IgnoreRuleType.SUPPRESSED_BY,
-  suppressedBy: TypeAttributePath,
+export type SuppressedBy = {
+  type: Type,
+  typeAttributePath: TypeAttributePath,
+}
+
+export type TypeIgnoreRule = {
+  type: Type,
+  mode: TypeIgnoreRuleMode.SUPPRESSED_BY,
+  suppressedBy: SuppressedBy,
 } | {
-  type: IgnoreRuleType.IGNORED,
+  type: Type,
+  mode: TypeIgnoreRuleMode.IGNORED,
 }
 
 export type MappingContext = {
 
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface MappingResultOptions {
+export type TypeUsageRule = {
+  type: Type,
+  typeAttributePath: TypeAttributePath,
+}
 
+export interface MappingResultOptions {
+  typeIgnoreRuleList: TypeIgnoreRule[],
+  typeUsageRuleList: TypeUsageRule[],
 }
 
 export interface MappingResult<WHERE> {
   where?: WHERE,
   mode: MappingResultMode,
   options: MappingResultOptions,
+}
+
+export type MappingResultMap<WHERE> = {
+  [KEY in Type]?: MappingResult<WHERE>
 }
 
 // const mapping = {
@@ -110,7 +126,7 @@ export type MappingFunction<SOURCE, ARGS, CONTEXT, WHERE> = (
 
 // TODO: replace string with TypeAttributePath when 4.4 https://github.com/microsoft/TypeScript/pull/26797
 export type NestedFilterMapping<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE> = {
-  [KEY in Type]?: NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, WHERE>
+  [KEY in Type]?: NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, WHERE> | MappingFunction<SOURCE, ARGS, CONTEXT, WHERE>
 }
 
 export type NestedFilterDeclaration<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type> = {

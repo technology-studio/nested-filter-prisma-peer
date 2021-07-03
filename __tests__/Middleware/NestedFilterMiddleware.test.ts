@@ -6,7 +6,7 @@
 
 import { Post, Comment } from '@prisma/client'
 import type { GraphQLResolveInfo } from 'graphql'
-import { NestedFilterContext, nestedFilterMiddleware } from '@txo/nested-filter-prisma/src'
+import { mapValue, NestedFilterContext, nestedFilterMiddleware } from '@txo/nested-filter-prisma/src'
 
 import {
   POST, COMMENT_1,
@@ -53,7 +53,12 @@ describe('NestedFilterMiddleware', () => {
     info: GraphQLResolveInfo,
   ): Promise<Comment[]> => {
     expect(context.nestedArgMap).toEqual(LEVEL_1_POST_NESTED_ARG_MAP)
-
+    await context.withNestedFilters({
+      type: 'Comment',
+      mapping: {
+        Post: { post: { id: mapValue('Post.id') } },
+      },
+    })
     return [COMMENT_1, COMMENT_2]
   }
 

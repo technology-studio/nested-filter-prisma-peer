@@ -10,6 +10,7 @@ import { Log } from '@txo/log'
 
 import {
   MappingResult,
+  MappingResultMap,
   MappingResultMode,
   MappingResultOptions,
   NestedFilterContext,
@@ -32,7 +33,9 @@ const resolveObjectMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFil
     const mappingValue = mappingValueMap[key]
     const subResult = await resolveMappingValue(type, mappingValue, resultOptions, resolverArguments)
     log.debug('resolveObjectMappingValue, subresult', { subResult, mappingValue, key })
-    resultOptions = subResult.options
+    if (subResult.mode !== MappingResultMode.INVALID) {
+      resultOptions = subResult.options
+    }
     resultMap[key] = subResult
   }
 
@@ -79,7 +82,9 @@ const resolveArrayMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFilt
   const resultList = []
   for await (const mappingValue of mappingValueList) {
     const subResult = await resolveMappingValue(type, mappingValue, resultOptions, resolverArguments)
-    resultOptions = subResult.options
+    if (subResult.mode !== MappingResultMode.INVALID) {
+      resultOptions = subResult.options
+    }
     resultList.push(subResult)
   }
 
@@ -140,10 +145,6 @@ export const resolveMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFi
   }
 }
 
-type MappingResultMap<WHERE> = {
-  [KEY in Type]?: MappingResult<WHERE>
-}
-
 export const resolveMapping = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
   mapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, WHERE>,
   resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
@@ -155,7 +156,7 @@ export const resolveMapping = async <SOURCE, ARGS, CONTEXT extends NestedFilterC
     mappingResultMap[type] = await resolveMappingValue(
       type,
       mapping[type],
-      {},
+      { typeIgnoreRuleList: [], typeUsageRuleList: [] },
       resolverArguments,
     ) as MappingResult<WHERE>
   }
