@@ -17,7 +17,7 @@ export interface Plugin {
   processWhere: <SOURCE, ARGS, CONTEXT, WHERE>(
     where: WHERE,
     resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
-    extensionOptions: PluginOptions | undefined,
+    pluginOptions: PluginOptions | undefined,
   ) => WHERE,
 }
 

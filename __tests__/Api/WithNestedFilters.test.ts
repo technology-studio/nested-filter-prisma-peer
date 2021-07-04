@@ -11,9 +11,6 @@ import {
   suppressedBy,
 } from '@txo/nested-filter-prisma/src'
 
-// import { Context } from '../../example/ContextType'
-// import { createContext } from '../../example/Context'
-
 import { invokeResolver } from '../Utils'
 import {
   AUTHOR,
@@ -26,14 +23,7 @@ import {
 } from '../Data'
 import { Author, Comment } from '@prisma/client'
 
-// import { AUTHOR, POST, COMMENT, EmptyResolver, FAKE_INFO } from '../Data'
-
 describe('WithNestedFilters', () => {
-//   const resultWithPost = addEntityToNestedArgMap(POST, undefined, 'Post')
-//   const resultWithPostAndAuthor = addEntityToNestedArgMap(AUTHOR, resultWithPost.nestedArgMap, 'Author')
-
-  //   const resultWithPostAndComment = addEntityToNestedArgMap(COMMENT, resultWithPost.nestedArgMap, 'Comment')
-
   test('withNestedFilters - no parent entities', async () => {
     await invokeResolver<undefined, undefined, undefined>(async (source, args, context, info) => {
       const where = await context.withNestedFilters<'Post'>({

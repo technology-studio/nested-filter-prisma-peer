@@ -5,7 +5,7 @@ Nested filters allow automatically filter data resolved for projections based on
 ## Features
 
 * Transitivite relations A → B, B → C ⇒ A → C
-* Automatically applied filters by extensions
+* Automatically applied filters by plugins
 * Support to extend existing nested filters
 * Validation of not mapped parent entities with support of ignore rules.
 
