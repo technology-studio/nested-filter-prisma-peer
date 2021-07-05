@@ -21,7 +21,7 @@ const containsWhere = <ARGS>(args: ARGS): args is ARGS & { where: unknown } => (
   args && 'where' in args
 )
 
-export const withNestedFilters = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type>({
+export async function withNestedFilters <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type> ({
   mapping,
   type,
   pluginOptions,
@@ -34,7 +34,7 @@ export const withNestedFilters = async <SOURCE, ARGS, CONTEXT extends NestedFilt
   type: Type,
   pluginOptions?: PluginOptions,
   mappingResultMapList: MappingResultMap<unknown>[],
-}): Promise<GetWhere<TYPE>> => {
+}): Promise<GetWhere<TYPE>> {
   const subWhereList = []
   if (containsWhere(resolverArguments.args)) {
     subWhereList.push(resolverArguments.args.where)

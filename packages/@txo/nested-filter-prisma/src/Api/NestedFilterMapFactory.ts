@@ -97,9 +97,9 @@ const mergeNestedFilterDeclarations = <SOURCE, ARGS, CONTEXT extends NestedFilte
     ),
   })
 
-export const produceNestedFilterDeclarationMap = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
+export function produceNestedFilterDeclarationMap <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>> (
   collection: NestedFilterCollection<CONTEXT>,
-): Record<string, NestedFilterDeclaration<unknown, unknown, CONTEXT, Type>> => {
+): Record<string, NestedFilterDeclaration<unknown, unknown, CONTEXT, Type>> {
   const declarationMap: Record<string, NestedFilterDeclaration<unknown, unknown, CONTEXT, Type>> = {}
   traverseNestedFilterCollection(collection, ({ mode, declaration }) => {
     const existingDeclaration = declarationMap[declaration.type]
