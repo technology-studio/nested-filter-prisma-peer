@@ -16,9 +16,10 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "yarn build:clean && yarn build:lib",
+    "build": "yarn build:clean && yarn build:lib && yarn build:patch",
     "build:clean": "yarn rimraf lib",
     "build:lib": "yarn tsc",
+    "build:patch": "find lib -name '*.d.ts' -exec sed -i '' 's/\"Placeholder\"/Type/g' {} \\;",
     "build:watch": "concurrently \"yarn build:watch:lib\"",
     "build:watch:lib": "yarn tsc --watch",
     "prepare": "yarn build"
