@@ -6,7 +6,7 @@
 
 import { Post, Comment } from '@prisma/client'
 import type { GraphQLResolveInfo } from 'graphql'
-import { mapValue, NestedFilterContext, nestedFilterMiddleware } from '@txo/nested-filter-prisma/src'
+import { mapValue, NestedFilterContext } from '@txo/nested-filter-prisma/src'
 
 import {
   POST, COMMENT_1,
@@ -17,6 +17,9 @@ import {
   LEVEL_1_POST_NESTED_RESULT_MAP,
   LEVEL_0_RESULT_MAP,
 } from '../Data'
+import {
+  nestedFilterMiddleware,
+} from '../Utils'
 
 import { Context } from '../../example/ContextType'
 import { createContext } from '../../example/Context'

@@ -72,7 +72,11 @@ const setNestedResultAndGetNestedArgMap = (
   return nestedArgMap
 }
 
-export const nestedFilterMiddleware = async <
+export const nestedFilterMiddlewareFactory = ({
+  ignoredTypeList = [],
+}: {
+  ignoredTypeList?: string[],
+} = {}) => async <
 SOURCE,
 ARGS,
 CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>,
@@ -128,6 +132,7 @@ RESULT
 
   log.debug('nestedFilterMiddleware after resolve', { mappingResultMapList, nestedArgMap: context.nestedArgMap })
   reportMissingNestedFilters(
+    ignoredTypeList,
     mappingResultMapList,
     context.nestedArgMap,
   )

@@ -7,10 +7,12 @@
 import type { GraphQLResolveInfo } from 'graphql'
 
 import {
-  nestedFilterMiddleware, NestedResultMap,
+  nestedFilterMiddlewareFactory, NestedResultMap,
 } from '@txo/nested-filter-prisma/src'
 import { Context } from '../example/ContextType'
 import { createContext } from '../example/Context'
+
+export const nestedFilterMiddleware = nestedFilterMiddlewareFactory()
 
 export const invokeResolver = async <SOURCE, ARGS, RESULT>(
   resolver: (

@@ -75,6 +75,7 @@ type TypeMapping = {
 }
 
 export const reportMissingNestedFilters = (
+  ignoredTypeList: string[],
   mappingResultMapList: MappingResultMap<unknown>[],
   nestedArgMap: NestedArgMap,
 ): void => {
@@ -144,7 +145,10 @@ export const reportMissingNestedFilters = (
   const mappedTypedList = Object.keys(typeMappingMap)
 
   const notMappedTypeList = Object.keys(nestedArgMap).filter(
-    type => mappedTypedList.every(mappedType => mappedType !== type),
+    type => (
+      mappedTypedList.every(mappedType => mappedType !== type) &&
+      !ignoredTypeList.includes(type)
+    ),
   )
 
   if (notMappedTypeList.length > 0) {
