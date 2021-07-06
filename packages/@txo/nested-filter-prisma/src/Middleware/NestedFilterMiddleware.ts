@@ -72,6 +72,22 @@ const setNestedResultAndGetNestedArgMap = (
   return nestedArgMap
 }
 
+const syncContext = (context: Record<string, unknown>, resolverContext: Record<string, unknown>): void => {
+  const ignoredKeyList = ['nestedArgMap', 'withNestedFilters']
+  for (const key in resolverContext) {
+    if (!ignoredKeyList.includes(key)) {
+      context[key] = resolverContext[key]
+    }
+  }
+
+  for (const key in context) {
+    if (!(key in resolverContext)) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete context[key]
+    }
+  }
+}
+
 export const nestedFilterMiddlewareFactory = ({
   ignoredTypeList = [],
 }: {
@@ -98,19 +114,21 @@ RESULT
       children: {},
     }
   }
-
   const nestedArgMap = setNestedResultAndGetNestedArgMap(
     context.nestedResultMap,
     pathList,
     {},
     nestedResultNode,
   )
-  context.nestedArgMap = nestedArgMap
 
-  const resolverContext = context
+  const resolverContext = {
+    ...context,
+    nestedArgMap,
+  }
 
   let usedNestedFilters = false
   const mappingResultMapList: MappingResultMap<unknown>[] = []
+
   resolverContext.withNestedFilters = async <TYPE extends Type>({
     type,
     mapping,
@@ -128,21 +146,18 @@ RESULT
       mappingResultMapList,
     })
   }
-  const previousNestedArgMap = context.nestedArgMap
 
   const result = await resolve(source, args, resolverContext, info)
 
-  log.debug('nestedFilterMiddleware after resolve', { mappingResultMapList, nestedArgMap: context.nestedArgMap, ignoredTypeList, usedNestedFilters })
+  log.debug('nestedFilterMiddleware after resolve', { pathList, mappingResultMapList, nestedArgMap: resolverContext.nestedArgMap, ignoredTypeList, usedNestedFilters })
   if (usedNestedFilters) {
     reportMissingNestedFilters(
       ignoredTypeList,
       mappingResultMapList,
-      context.nestedArgMap,
+      resolverContext.nestedArgMap,
     )
   }
 
-  context.nestedArgMap = previousNestedArgMap
-  delete (resolverContext as Record<string, unknown>).withNestedFilters
-
+  syncContext(context, resolverContext)
   return result
 }
