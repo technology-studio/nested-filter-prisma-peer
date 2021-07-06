@@ -109,6 +109,7 @@ RESULT
 
   const resolverContext = context
 
+  let usedNestedFilters = false
   const mappingResultMapList: MappingResultMap<unknown>[] = []
   resolverContext.withNestedFilters = async <TYPE extends Type>({
     type,
@@ -118,6 +119,7 @@ RESULT
     const resolverArguments = {
       source, args, context: resolverContext, info,
     }
+    usedNestedFilters = true
     return withNestedFilters({
       mapping,
       type: info.path.typename as Type,
@@ -130,12 +132,14 @@ RESULT
 
   const result = await resolve(source, args, resolverContext, info)
 
-  log.debug('nestedFilterMiddleware after resolve', { mappingResultMapList, nestedArgMap: context.nestedArgMap })
-  reportMissingNestedFilters(
-    ignoredTypeList,
-    mappingResultMapList,
-    context.nestedArgMap,
-  )
+  log.debug('nestedFilterMiddleware after resolve', { mappingResultMapList, nestedArgMap: context.nestedArgMap, ignoredTypeList, usedNestedFilters })
+  if (usedNestedFilters) {
+    reportMissingNestedFilters(
+      ignoredTypeList,
+      mappingResultMapList,
+      context.nestedArgMap,
+    )
+  }
 
   context.nestedArgMap = previousNestedArgMap
   delete (resolverContext as Record<string, unknown>).withNestedFilters
