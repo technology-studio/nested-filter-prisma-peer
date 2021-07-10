@@ -4,12 +4,10 @@
  * @Copyright: Technology Studio
 **/
 
-import { mapFilter, mapValue, nestedFilter } from '@txo/nested-filter-prisma/src'
+import { mapFilter, mapValue, nestedFilter } from '@txo/nested-filter-prisma'
 import { Prisma, Comment, Post, Author } from '@prisma/client'
 
-import type { Context } from './ContextType'
-
-declare module '@txo/nested-filter-prisma/src' {
+declare module '@txo/nested-filter-prisma' {
   export interface AllNestedFilters {
     Author: {
       structure: Author,
@@ -26,7 +24,7 @@ declare module '@txo/nested-filter-prisma/src' {
   }
 }
 
-export const PostNestedFilter = nestedFilter<Context, 'Post'>({
+export const PostNestedFilter = nestedFilter({
   type: 'Post',
   mapping: {
     Post: {
@@ -36,7 +34,7 @@ export const PostNestedFilter = nestedFilter<Context, 'Post'>({
   },
 })
 
-export const AuthorNestedFilter = nestedFilter<Context, 'Author'>({
+export const AuthorNestedFilter = nestedFilter({
   type: 'Author',
   mapping: {
     Author: {
@@ -46,7 +44,7 @@ export const AuthorNestedFilter = nestedFilter<Context, 'Author'>({
   },
 })
 
-export const CommentNestedFilter = nestedFilter<Context, 'Comment'>({
+export const CommentNestedFilter = nestedFilter({
   type: 'Comment',
   mapping: {
     Comment: {
@@ -59,7 +57,7 @@ export const CommentNestedFilter = nestedFilter<Context, 'Comment'>({
   },
 })
 
-export const CommentNestedFilterExtended = nestedFilter<Context, 'Comment'>({
+export const CommentNestedFilterExtended = nestedFilter({
   type: 'Comment',
   mapping: {
     Author: {

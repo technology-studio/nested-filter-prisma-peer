@@ -9,7 +9,7 @@ import {
   mapFilter,
   mapValue,
   suppressedBy,
-} from '@txo/nested-filter-prisma/src'
+} from '@txo/nested-filter-prisma'
 
 import { invokeResolver } from '../Utils'
 import {
@@ -26,7 +26,7 @@ import { Author, Comment } from '@prisma/client'
 describe('WithNestedFilters', () => {
   test('withNestedFilters - no parent entities', async () => {
     await invokeResolver<undefined, undefined, undefined>(async (source, args, context, info) => {
-      const where = await context.withNestedFilters<'Post'>({
+      const where = await context.withNestedFilters({
         type: 'Post',
         mapping: {
           Post: { id: mapValue('Post.id') },
@@ -44,7 +44,7 @@ describe('WithNestedFilters', () => {
   test('withNestedFilters - throw exception for not mapped parent entity', async () => {
     return expect(
       invokeResolver<Author, undefined, Comment[]>(async (source, args, context, info) => {
-        await context.withNestedFilters<'Comment'>({
+        await context.withNestedFilters({
           type: 'Comment',
           mapping: {
             Author: { author: { id: mapValue('Author.id') } },
@@ -58,7 +58,7 @@ describe('WithNestedFilters', () => {
 
   test('withNestedFilters - should not throw exception for suppresed parent entities', async () => {
     await invokeResolver<Author, undefined, Comment[]>(async (source, args, context, info) => {
-      const where = await context.withNestedFilters<'Comment'>({
+      const where = await context.withNestedFilters({
         type: 'Comment',
         mapping: {
           Author: { author: { id: mapValue('Author.id') } },
@@ -80,7 +80,7 @@ describe('WithNestedFilters', () => {
   test('withNestedFilters - throw exception for not mapped parent entity if suppressed doesn\'t contain value', async () => {
     return expect(
       invokeResolver<Record<string, unknown>, undefined, Comment[]>(async (source, args, context, info) => {
-        const where = await context.withNestedFilters<'Comment'>({
+        const where = await context.withNestedFilters({
           type: 'Comment',
           mapping: {
             Author: { author: { id: mapValue('Author.id') } },
@@ -98,7 +98,7 @@ describe('WithNestedFilters', () => {
 
   test('withNestedFilters - should not throw exception for ignored parent entities', async () => {
     await invokeResolver<Author, undefined, Comment[]>(async (source, args, context, info) => {
-      const where = await context.withNestedFilters<'Comment'>({
+      const where = await context.withNestedFilters({
         type: 'Comment',
         mapping: {
           Author: { author: { id: mapValue('Author.id') } },
@@ -120,7 +120,7 @@ describe('WithNestedFilters', () => {
   test('withNestedFilters - throw exception for not mapped parent entity if suppressed contains value, but mapping is missing', async () => {
     return expect(
       invokeResolver<Author, undefined, Comment[]>(async (source, args, context, info) => {
-        const where = await context.withNestedFilters<'Comment'>({
+        const where = await context.withNestedFilters({
           type: 'Comment',
           mapping: {
             Post: suppressedBy('Author', 'Author.id'),
@@ -137,7 +137,7 @@ describe('WithNestedFilters', () => {
 
   test('withNestedFilters - with two parent entities with mapValue', async () => {
     await invokeResolver<Author, undefined, Comment[]>(async (source, args, context, info) => {
-      const where = await context.withNestedFilters<'Comment'>({
+      const where = await context.withNestedFilters({
         type: 'Comment',
         mapping: {
           Post: { post: { id: mapValue('Post.id') } },
@@ -162,7 +162,7 @@ describe('WithNestedFilters', () => {
 
   test('withNestedFilters - with two parent entities with mapFilter', async () => {
     await invokeResolver<Author, undefined, Comment[]>(async (source, args, context, info) => {
-      const where = await context.withNestedFilters<'Comment'>({
+      const where = await context.withNestedFilters({
         type: 'Comment',
         mapping: {
           Post: { post: mapFilter('Post') },
@@ -189,7 +189,7 @@ describe('WithNestedFilters', () => {
 
   test('withNestedFilters - with transitive relation', async () => {
     await invokeResolver<Comment, undefined, Author>(async (source, args, context, info) => {
-      const where = await context.withNestedFilters<'Author'>({
+      const where = await context.withNestedFilters({
         type: 'Author',
         mapping: {
           // Author: { author: { id: mapValue('Author.id') } },

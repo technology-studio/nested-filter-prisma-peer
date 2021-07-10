@@ -5,18 +5,19 @@
 **/
 
 import type { GraphQLResolveInfo } from 'graphql'
+import type { Context } from '@txo/prisma-graphql'
 
-export type ResolverArguments<SOURCE, ARGS, CONTEXT> = {
-  source: SOURCE,
-  args: ARGS,
-  context: CONTEXT,
+export type ResolverArguments = {
+  source: unknown,
+  args: unknown,
+  context: Context,
   info: GraphQLResolveInfo,
 }
 
 export interface Plugin {
-  processWhere: <SOURCE, ARGS, CONTEXT, WHERE>(
+  processWhere: <WHERE>(
     where: WHERE,
-    resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+    resolverArguments: ResolverArguments,
     pluginOptions: PluginOptions | undefined,
   ) => WHERE,
 }

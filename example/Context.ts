@@ -4,13 +4,13 @@
  * @Copyright: Technology Studio
 **/
 
-import { createNestedFilterMap } from '@txo/nested-filter-prisma/src'
+import { createNestedFilterMap } from '@txo/nested-filter-prisma'
 import { PrismaClient } from '@prisma/client'
+import type { Context } from '@txo/prisma-graphql'
 
-import type { Context } from './ContextType'
 import { nestedFilterList } from './NestedFilters'
 
-export function createContext <SOURCE, ARGS> (): Context<SOURCE, ARGS> {
+export function createContext (): Context {
   return {
     prisma: new PrismaClient({}),
     nestedFilterMap: createNestedFilterMap(nestedFilterList),
@@ -19,5 +19,10 @@ export function createContext <SOURCE, ARGS> (): Context<SOURCE, ARGS> {
     withNestedFilters: async () => {
       throw new Error('nested filter hasn\'t been configured')
     },
+    request: {
+      headers: {},
+    },
   }
 }
+
+export const context = createContext()

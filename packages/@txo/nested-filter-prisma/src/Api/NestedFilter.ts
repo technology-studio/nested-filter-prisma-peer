@@ -6,23 +6,22 @@
 
 import {
   NestedFilter,
-  NestedFilterContext,
   NestedFilterDeclaration,
   NestedFilterDefinition,
   NestedFilterDefinitionMode,
   Type,
 } from '../Model'
 
-export const nestedFilter = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>, TYPE extends Type>(
-  declaration: NestedFilterDeclaration<unknown, unknown, CONTEXT, TYPE>,
-): NestedFilterDefinition<CONTEXT> => ({
+export const nestedFilter = <TYPE extends Type>(
+  declaration: NestedFilterDeclaration<TYPE>,
+): NestedFilterDefinition => ({
     mode: NestedFilterDefinitionMode.MERGE,
     declaration,
   })
 
-export const createNestedFilter = <CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>>(
-  declaration: NestedFilterDeclaration<unknown, unknown, CONTEXT, Type>,
-): NestedFilter<CONTEXT> => {
+export const createNestedFilter = (
+  declaration: NestedFilterDeclaration<Type>,
+): NestedFilter => {
   return {
     type: declaration.type,
     declaration,

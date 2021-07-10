@@ -4,7 +4,7 @@
  * @Copyright: Technology Studio
 **/
 
-import { produceNestedFilterDeclarationMap } from '@txo/nested-filter-prisma/src'
+import { produceNestedFilterDeclarationMap } from '@txo/nested-filter-prisma'
 
 import { CommentNestedFilter, CommentNestedFilterExtended } from '../../example/NestedFilters'
 

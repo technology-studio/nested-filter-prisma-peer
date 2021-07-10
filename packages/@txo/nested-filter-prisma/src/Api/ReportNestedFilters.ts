@@ -14,7 +14,6 @@ import type {
   MappingResultMap,
   MappingResultOptions,
   NestedArgMap,
-  NestedFilterContext,
   Type,
   TypeAttributePath,
   TypeIgnoreRule,
@@ -24,10 +23,10 @@ import type {
 export const suppressedBy = (
   suppressedByType: Type,
   suppressedByTypeAttributePath: TypeAttributePath,
-) => async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+) => async <WHERE>(
   type: Type,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<WHERE>> => {
   const typeIgnoreRule: TypeIgnoreRule = {
     type,
@@ -49,10 +48,10 @@ export const suppressedBy = (
   }
 }
 
-export const ignored = () => async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+export const ignored = () => async <WHERE>(
   type: Type,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<WHERE>> => {
   const typeIgnoreRule: TypeIgnoreRule = {
     type,

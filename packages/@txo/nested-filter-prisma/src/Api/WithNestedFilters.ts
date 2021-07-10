@@ -10,7 +10,6 @@ import type {
   NestedFilterMapping,
   Type,
   GetWhere,
-  NestedFilterContext,
 } from '../Model/Types'
 
 // import { reportMissingNestedFilters } from './ReportNestedFilters'
@@ -21,7 +20,7 @@ const containsWhere = <ARGS>(args: ARGS): args is ARGS & { where: unknown } => (
   args && 'where' in args
 )
 
-export const withNestedFilters = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type>({
+export const withNestedFilters = async <TYPE extends Type>({
   mapping,
   type,
   pluginOptions,
@@ -29,8 +28,8 @@ export const withNestedFilters = async <SOURCE, ARGS, CONTEXT extends NestedFilt
   mappingResultMapList,
 }: {
   // TODO: add support to call resolver for filters so we allow composite constructs shared for other resolvers
-  mapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>>,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  mapping: NestedFilterMapping<GetWhere<TYPE>>,
+  resolverArguments: ResolverArguments,
   type: Type,
   pluginOptions?: PluginOptions,
   mappingResultMapList: MappingResultMap<unknown>[],

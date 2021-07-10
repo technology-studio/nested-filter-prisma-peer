@@ -42,9 +42,9 @@ export type AllStructures = Values<{
   [KEY in keyof AllNestedFilters]: AllNestedFilters[KEY]['structure']
 }>
 
-export type NestedFilter<CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>, TYPE extends Type = Type> = {
+export type NestedFilter<TYPE extends Type = Type> = {
   type: TYPE,
-  declaration: NestedFilterDeclaration<unknown, unknown, CONTEXT, TYPE>,
+  declaration: NestedFilterDeclaration<TYPE>,
 }
 
 export type SuppressedBy = {
@@ -85,69 +85,52 @@ export type MappingResultMap<WHERE> = {
   [KEY in Type]?: MappingResult<WHERE>
 }
 
-// const mapping = {
-//   'UserAccount.id': {
-//     user: nestedFilter('User')
-//     user: nestedArg('UserAccount.id')
-//     user:
-//     user: 'user.id'
-//     OR: {
-//       userID:
-//     }
-//   }
-// }
-
-export type A = {
-  AND: [A],
-  some: number,
+export type NestedFilterMappingValueObject<WHERE> = {
+  [KEY in keyof WHERE]: NestedFilterMappingValue<WHERE[KEY]>
 }
 
-export type NestedFilterMappingValueObject<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE> = {
-  [KEY in keyof WHERE]: NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, WHERE[KEY]>
-}
+export interface InjectMappingFunctionArray<WHERE> extends Array<NestedFilterMappingValue<WHERE>> {}
 
-export interface InjectMappingFunctionArray<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE> extends Array<NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, WHERE>> {}
-
-export type NestedFilterMappingValue<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE> =
+export type NestedFilterMappingValue<WHERE> =
   WHERE extends (...args: unknown[]) => unknown
     ? WHERE
     // eslint-disable-next-line @typescript-eslint/ban-types
     : WHERE extends object
-      ? NestedFilterMappingValueObject<SOURCE, ARGS, CONTEXT, WHERE>
+      ? NestedFilterMappingValueObject<WHERE>
       : WHERE extends unknown[]
-        ? InjectMappingFunctionArray<SOURCE, ARGS, CONTEXT, WHERE[number]>
-        : WHERE | MappingFunction<SOURCE, ARGS, CONTEXT, WHERE>
+        ? InjectMappingFunctionArray<WHERE[number]>
+        : WHERE | MappingFunction<WHERE>
 
-export type MappingFunction<SOURCE, ARGS, CONTEXT, WHERE> = (
+export type MappingFunction<WHERE> = (
   type: Type,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>
+  resolverArguments: ResolverArguments
 ) => Promise<MappingResult<WHERE>>
 
 // TODO: replace string with TypeAttributePath when 4.4 https://github.com/microsoft/TypeScript/pull/26797
-export type NestedFilterMapping<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE> = {
-  [KEY in Type]?: NestedFilterMappingValue<SOURCE, ARGS, CONTEXT, WHERE> | MappingFunction<SOURCE, ARGS, CONTEXT, WHERE>
+export type NestedFilterMapping<WHERE> = {
+  [KEY in Type]?: NestedFilterMappingValue<WHERE> | MappingFunction<WHERE>
 }
 
-export type NestedFilterDeclaration<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type> = {
+export type NestedFilterDeclaration<TYPE extends Type> = {
   type: TYPE,
-  mapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>>,
+  mapping: NestedFilterMapping<GetWhere<TYPE>>,
 }
 
-export type NestedFilterDefinition<CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>, TYPE extends Type = Type> = {
+export type NestedFilterDefinition<TYPE extends Type = Type> = {
   mode: NestedFilterDefinitionMode,
-  declaration: NestedFilterDeclaration<unknown, unknown, CONTEXT, TYPE>,
+  declaration: NestedFilterDeclaration<TYPE>,
 }
 
-export type NestedFilterMap<CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>> = {
-  [TYPE in Type]?: NestedFilter<CONTEXT>
+export type NestedFilterMap = {
+  [TYPE in Type]?: NestedFilter
 }
 
-export type NestedFilterCollection<CONTEXT extends NestedFilterContext<unknown, unknown, CONTEXT>> = (
-  NestedFilterCollection<CONTEXT>[] |
-  NestedFilterDefinition<CONTEXT>[] |
-  NestedFilterDefinition<CONTEXT> | {
-    [key: string]: NestedFilterCollection<CONTEXT>,
+export type NestedFilterCollection = (
+  NestedFilterCollection[] |
+  NestedFilterDefinition[] |
+  NestedFilterDefinition | {
+    [key: string]: NestedFilterCollection,
   }
 )
 
@@ -161,20 +144,20 @@ export type NestedResultMap = {
   [key: string]: NestedResultNode,
 }
 
-export type NestedFilterContext<SOURCE, ARGS, CONTEXT> = {
-  nestedArgMap: NestedArgMap,
-  nestedResultMap: NestedResultMap,
-  nestedFilterMap: NestedFilterMap<WithNestedFilterContext<unknown, unknown, CONTEXT>>,
-  withNestedFilters: <TYPE extends Type> (
-    attributes: WithNestedFiltersAttributes<SOURCE, ARGS, WithNestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE>
-  ) => Promise<GetWhere<TYPE>>,
+declare module '@txo/prisma-graphql' {
+  export interface Context {
+    nestedArgMap: NestedArgMap,
+    nestedResultMap: NestedResultMap,
+    nestedFilterMap: NestedFilterMap,
+    withNestedFilters: <TYPE extends Type> (
+      attributes: WithNestedFiltersAttributes<TYPE>
+    ) => Promise<GetWhere<TYPE>>,
+  }
 }
 
-export type WithNestedFilterContext<SOURCE, ARGS, CONTEXT> = CONTEXT & NestedFilterContext<SOURCE, ARGS, CONTEXT>
-
-export type WithNestedFiltersAttributes<SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, TYPE extends Type> = {
+export type WithNestedFiltersAttributes<TYPE extends Type> = {
   type: TYPE,
-  mapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, GetWhere<TYPE>>,
+  mapping: NestedFilterMapping<GetWhere<TYPE>>,
   pluginOptions?: PluginOptions,
 }
 

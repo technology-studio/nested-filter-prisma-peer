@@ -6,13 +6,13 @@
 
 import { GraphQLResolveInfo, isLeafType, getNamedType } from 'graphql'
 import { Log } from '@txo/log'
+import type { Context } from '@txo/prisma-graphql'
 
 import { withNestedFilters } from '../Api/WithNestedFilters'
 import type {
   GetWhere,
   MappingResultMap,
   NestedArgMap,
-  NestedFilterContext,
   NestedResultMap,
   NestedResultNode,
   Type,
@@ -72,7 +72,8 @@ const setNestedResultAndGetNestedArgMap = (
   return nestedArgMap
 }
 
-const syncContext = (context: Record<string, unknown>, resolverContext: Record<string, unknown>): void => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const syncContext = (context: any, resolverContext: any): void => {
   const ignoredKeyList = ['nestedArgMap', 'withNestedFilters']
   for (const key in resolverContext) {
     if (!ignoredKeyList.includes(key)) {
@@ -95,13 +96,12 @@ export const nestedFilterMiddlewareFactory = ({
 } = {}) => async <
 SOURCE,
 ARGS,
-CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>,
 RESULT
 >(
-  resolve: (source: SOURCE, args: ARGS, context: CONTEXT, info: GraphQLResolveInfo) => Promise<RESULT>,
+  resolve: (source: SOURCE, args: ARGS, context: Context, info: GraphQLResolveInfo) => Promise<RESULT>,
   source: SOURCE,
   args: ARGS,
-  context: CONTEXT,
+  context: Context,
   info: GraphQLResolveInfo,
 ): Promise<RESULT> => {
   const pathList = getPathList(info.path)
@@ -121,7 +121,7 @@ RESULT
     nestedResultNode,
   )
 
-  const resolverContext = {
+  const resolverContext: Context = {
     ...context,
     nestedArgMap,
   }
@@ -133,7 +133,7 @@ RESULT
     type,
     mapping,
     pluginOptions,
-  }: WithNestedFiltersAttributes<SOURCE, ARGS, CONTEXT, TYPE>): Promise<GetWhere<TYPE>> => {
+  }: WithNestedFiltersAttributes<TYPE>): Promise<GetWhere<TYPE>> => {
     const resolverArguments = {
       source, args, context: resolverContext, info,
     }

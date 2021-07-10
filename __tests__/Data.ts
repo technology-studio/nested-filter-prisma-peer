@@ -5,10 +5,9 @@
 **/
 
 import type { Post, Author, Comment } from '@prisma/client'
-import { NestedResultMap, NestedResultNode } from '@txo/nested-filter-prisma/src'
+import { NestedResultMap, NestedResultNode } from '@txo/nested-filter-prisma'
+import type { Context } from '@txo/prisma-graphql'
 import { GraphQLObjectType, GraphQLList, GraphQLResolveInfo } from 'graphql'
-
-import type { Context } from '../example/ContextType'
 
 const cloneAndAddResult = (map: NestedResultMap, pathList: string[], resultNode: NestedResultNode): NestedResultMap => {
   if (pathList.length > 1) {

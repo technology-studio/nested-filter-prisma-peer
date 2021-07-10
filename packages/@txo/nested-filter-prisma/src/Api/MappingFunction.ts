@@ -12,7 +12,6 @@ import {
   MappingResult,
   MappingResultMode,
   MappingResultOptions,
-  NestedFilterContext,
   Type,
   TypeAttributePath,
 } from '../Model'
@@ -25,10 +24,10 @@ const NOT_PRESENT = '##not-present##'
 
 export const mapValue = (
   typeAttributePath: TypeAttributePath,
-) => async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+) => async <WHERE>(
   type: Type,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<WHERE>> => {
   // TODO retrieve type by TypeAttributePath from AllTypes
   const filterValue = get(resolverArguments.context.nestedArgMap, typeAttributePath, NOT_PRESENT)
@@ -55,10 +54,10 @@ export const mapValue = (
 
 export const mapFilter = (
   filterType: Type,
-) => async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+) => async <WHERE>(
   type: Type,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<WHERE>> => {
   log.debug('mapFilter', { filterType, type, resultOptions, nestedArgMap: resolverArguments.context.nestedArgMap })
   const nestedFilter = resolverArguments.context.nestedFilterMap[filterType]

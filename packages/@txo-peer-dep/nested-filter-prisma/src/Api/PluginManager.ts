@@ -16,9 +16,9 @@ class PluginManager {
     this._pluginList = []
   }
 
-  processWhere = <SOURCE, ARGS, CONTEXT, WHERE>(
+  processWhere = <WHERE>(
     where: WHERE,
-    resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+    resolverArguments: ResolverArguments,
     pluginOptions: PluginOptions | undefined,
   ): WHERE => {
     return this._pluginList.reduce((where, plugin) => plugin.processWhere(

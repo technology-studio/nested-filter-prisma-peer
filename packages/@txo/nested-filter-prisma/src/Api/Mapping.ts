@@ -13,18 +13,17 @@ import {
   MappingResultMap,
   MappingResultMode,
   MappingResultOptions,
-  NestedFilterContext,
   NestedFilterMapping,
   Type,
 } from '../Model'
 
 const log = new Log('txo.nested-filter-prisma.Api.Mapping')
 
-const resolveObjectMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE extends Record<string, unknown>>(
+const resolveObjectMappingValue = async <WHERE extends Record<string, unknown>>(
   type: Type,
   mappingValueMap: Record<string, unknown>,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<WHERE>> => {
   const keyList = Object.keys(mappingValueMap)
 
@@ -73,11 +72,11 @@ const resolveObjectMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFil
   }
 }
 
-const resolveArrayMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
+const resolveArrayMappingValue = async <WHERE>(
   type: Type,
   mappingValueList: unknown[],
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<WHERE[]>> => {
   const resultList = []
   for await (const mappingValue of mappingValueList) {
@@ -117,11 +116,11 @@ const resolveArrayMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFilt
   }
 }
 
-export const resolveMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>>(
+export const resolveMappingValue = async (
   type: Type,
   mappingValue: unknown,
   resultOptions: MappingResultOptions,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResult<unknown>> => {
   switch (typeof mappingValue) {
     case 'object': {
@@ -145,9 +144,9 @@ export const resolveMappingValue = async <SOURCE, ARGS, CONTEXT extends NestedFi
   }
 }
 
-export const resolveMapping = async <SOURCE, ARGS, CONTEXT extends NestedFilterContext<SOURCE, ARGS, CONTEXT>, WHERE>(
-  mapping: NestedFilterMapping<SOURCE, ARGS, CONTEXT, WHERE>,
-  resolverArguments: ResolverArguments<SOURCE, ARGS, CONTEXT>,
+export const resolveMapping = async <WHERE>(
+  mapping: NestedFilterMapping<WHERE>,
+  resolverArguments: ResolverArguments,
 ): Promise<MappingResultMap<WHERE>> => {
   const mappingResultMap: MappingResultMap<WHERE> = {}
   for await (const _type of Object.keys(mapping)) {
