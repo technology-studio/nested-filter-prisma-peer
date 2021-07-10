@@ -72,18 +72,6 @@ query {
 }
 ```
 
-#### **`ContextType.ts`**
-```typescript:example/ContextType.ts [7]
-import type { PrismaClient } from '@prisma/client'
-import type { WithNestedFilterContext } from '@txo/nested-filter-prisma/src'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Context<SOURCE=any, ARGS=any> = WithNestedFilterContext<SOURCE, ARGS, {
-  prisma: PrismaClient,
-}>
-
-```
-
 #### **`Context.ts`**
 ```typescript:example/Context.ts [7]
 import { createNestedFilterMap } from '@txo/nested-filter-prisma/src'
@@ -130,7 +118,7 @@ declare module '@txo/nested-filter-prisma/src' {
   }
 }
 
-export const PostNestedFilter = nestedFilter<Context, 'Post'>({
+export const PostNestedFilter = nestedFilter({
   type: 'Post',
   mapping: {
     Post: {
@@ -140,7 +128,7 @@ export const PostNestedFilter = nestedFilter<Context, 'Post'>({
   },
 })
 
-export const AuthorNestedFilter = nestedFilter<Context, 'Author'>({
+export const AuthorNestedFilter = nestedFilter({
   type: 'Author',
   mapping: {
     Author: {
@@ -150,7 +138,7 @@ export const AuthorNestedFilter = nestedFilter<Context, 'Author'>({
   },
 })
 
-export const CommentNestedFilter = nestedFilter<Context, 'Comment'>({
+export const CommentNestedFilter = nestedFilter({
   type: 'Comment',
   mapping: {
     Comment: {
@@ -163,7 +151,7 @@ export const CommentNestedFilter = nestedFilter<Context, 'Comment'>({
   },
 })
 
-export const CommentNestedFilterExtended = nestedFilter<Context, 'Comment'>({
+export const CommentNestedFilterExtended = nestedFilter({
   type: 'Comment',
   mapping: {
     Author: {
@@ -194,7 +182,7 @@ export const authorCommentListField = extendType({
       type: 'Comment',
       resolve: async (parent, args, ctx, info) => {
         return ctx.prisma.comment.findMany({
-          where: ctx.withNestedFilters<'Comment'>({
+          where: ctx.withNestedFilters({
             type: 'Comment',
             mapping: {
               Post: { post: mapFilter('Post') },
