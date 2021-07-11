@@ -74,13 +74,13 @@ query {
 
 #### **`Context.ts`**
 ```typescript:example/Context.ts [7]
-import { createNestedFilterMap } from '@txo/nested-filter-prisma/src'
+import { createNestedFilterMap } from '@txo/nested-filter-prisma'
 import { PrismaClient } from '@prisma/client'
+import type { Context } from '@txo/prisma-graphql'
 
-import type { Context } from './ContextType'
 import { nestedFilterList } from './NestedFilters'
 
-export function createContext <SOURCE, ARGS> (): Context<SOURCE, ARGS> {
+export function createContext (): Context {
   return {
     prisma: new PrismaClient({}),
     nestedFilterMap: createNestedFilterMap(nestedFilterList),
@@ -89,19 +89,22 @@ export function createContext <SOURCE, ARGS> (): Context<SOURCE, ARGS> {
     withNestedFilters: async () => {
       throw new Error('nested filter hasn\'t been configured')
     },
+    request: {
+      headers: {},
+    },
   }
 }
+
+export const context = createContext()
 
 ```
 
 #### **`NestedFilters.ts`**
 ```typescript:example/NestedFilters.ts [7]
-import { mapFilter, mapValue, nestedFilter } from '@txo/nested-filter-prisma/src'
+import { mapFilter, mapValue, nestedFilter } from '@txo/nested-filter-prisma'
 import { Prisma, Comment, Post, Author } from '@prisma/client'
 
-import type { Context } from './ContextType'
-
-declare module '@txo/nested-filter-prisma/src' {
+declare module '@txo/nested-filter-prisma' {
   export interface AllNestedFilters {
     Author: {
       structure: Author,
