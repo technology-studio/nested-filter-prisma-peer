@@ -23,6 +23,8 @@
     "build:watch:lib": "yarn tsc --watch",
     "prepare": "yarn build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@txo/prisma-graphql": "^1.0.0"
+  },
   "peerDependencies": {}
 }
