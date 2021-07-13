@@ -144,7 +144,7 @@ export type NestedResultMap = {
   [key: string]: NestedResultNode,
 }
 
-declare module '@txo/prisma-graphql' {
+declare module '@txo/prisma-graphql/lib/Model/Types' {
   export interface Context {
     nestedArgMap: NestedArgMap,
     nestedResultMap: NestedResultMap,
