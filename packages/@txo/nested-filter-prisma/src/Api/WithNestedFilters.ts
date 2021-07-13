@@ -10,10 +10,11 @@ import type {
   NestedFilterMapping,
   Type,
   GetWhere,
+  NestedFilterMappingValue,
 } from '../Model/Types'
 
 // import { reportMissingNestedFilters } from './ReportNestedFilters'
-import { resolveMapping } from './Mapping'
+import { resolveMapping, resolveMappingValue } from './Mapping'
 import { MappingResultMode, MappingResultMap } from '../Model'
 
 const containsWhere = <ARGS>(args: ARGS): args is ARGS & { where: unknown } => (
@@ -22,26 +23,45 @@ const containsWhere = <ARGS>(args: ARGS): args is ARGS & { where: unknown } => (
 
 export const withNestedFilters = async <TYPE extends Type>({
   mapping,
+  where,
   type,
   pluginOptions,
   resolverArguments,
   mappingResultMapList,
+  excludeArgsWhere,
 }: {
   // TODO: add support to call resolver for filters so we allow composite constructs shared for other resolvers
   mapping: NestedFilterMapping<GetWhere<TYPE>>,
+  where?: NestedFilterMappingValue<GetWhere<TYPE>>,
   resolverArguments: ResolverArguments,
   type: Type,
   pluginOptions?: PluginOptions,
   mappingResultMapList: MappingResultMap<unknown>[],
+  excludeArgsWhere?: boolean,
 }): Promise<GetWhere<TYPE>> => {
   const subWhereList = []
-  if (containsWhere(resolverArguments.args)) {
+  if (containsWhere(resolverArguments.args) && !excludeArgsWhere) {
     subWhereList.push(resolverArguments.args.where)
   }
   const mappingResultMap = await resolveMapping(
     mapping,
     resolverArguments,
   )
+
+  if (where) {
+    const whereResult = await resolveMappingValue(
+      type,
+      where,
+      { typeIgnoreRuleList: [], typeUsageRuleList: [] },
+      resolverArguments,
+    )
+    switch (whereResult.mode) {
+      case MappingResultMode.ASSIGN:
+      case MappingResultMode.MERGE: {
+        subWhereList.push(whereResult.where)
+      }
+    }
+  }
 
   mappingResultMapList.push(mappingResultMap)
 
@@ -70,12 +90,12 @@ export const withNestedFilters = async <TYPE extends Type>({
   })
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const where = {
+  const resultWhere = {
     AND: subWhereList,
   } as GetWhere<TYPE>
 
   return pluginManager.processWhere(
-    where,
+    resultWhere,
     resolverArguments,
     pluginOptions,
   )

@@ -133,6 +133,7 @@ RESULT
     type,
     mapping,
     pluginOptions,
+    excludeArgsWhere,
   }: WithNestedFiltersAttributes<TYPE>): Promise<GetWhere<TYPE>> => {
     const resolverArguments = {
       source, args, context: resolverContext, info,
@@ -144,6 +145,7 @@ RESULT
       resolverArguments,
       pluginOptions,
       mappingResultMapList,
+      excludeArgsWhere,
     })
   }
 

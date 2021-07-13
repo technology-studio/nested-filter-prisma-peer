@@ -159,6 +159,7 @@ export type WithNestedFiltersAttributes<TYPE extends Type> = {
   type: TYPE,
   mapping: NestedFilterMapping<GetWhere<TYPE>>,
   pluginOptions?: PluginOptions,
+  excludeArgsWhere?: boolean,
 }
 
 export type NestedArgMap = {
