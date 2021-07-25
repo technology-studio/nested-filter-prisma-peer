@@ -148,17 +148,14 @@ export const CommentNestedFilter = nestedFilter({
       id: mapValue('Comment.id'),
       deleted: false,
     },
-    Post: {
-      post: mapFilter('Post'),
-    },
   },
 })
 
 export const CommentNestedFilterExtended = nestedFilter({
   type: 'Comment',
   mapping: {
-    Author: {
-      author: mapFilter('Author'),
+    Post: {
+      post: mapFilter('Post'),
     },
   },
 })
