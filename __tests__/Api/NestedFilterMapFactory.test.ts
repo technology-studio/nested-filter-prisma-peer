@@ -4,11 +4,28 @@
  * @Copyright: Technology Studio
 **/
 
-import { produceNestedFilterDeclarationMap } from '@txo/nested-filter-prisma'
+import {
+  produceNestedFilterDeclarationMap,
+  mapValue,
+  nestedFilter,
+  traverseNestedFilterCollection,
+} from '@txo/nested-filter-prisma'
 
 import { CommentNestedFilter, CommentNestedFilterExtended } from '../../example/NestedFilters'
 
 describe('NestedFilterMapFactory', () => {
+  test('traverseNestedFilterCollection - traverse nested collections and visit each filter only once', () => {
+    const collection = [[
+      CommentNestedFilter,
+      CommentNestedFilterExtended,
+    ]]
+    const callback = jest
+      .fn(() => undefined)
+
+    traverseNestedFilterCollection(collection, callback)
+    expect(callback.mock.calls).toEqual([[CommentNestedFilter], [CommentNestedFilterExtended]])
+  })
+
   test('produceNestedFilterDeclarationMap - merge two of the same type', () => {
     const nestedFilterList = [
       CommentNestedFilter,
@@ -22,6 +39,34 @@ describe('NestedFilterMapFactory', () => {
         mapping: {
           Post: CommentNestedFilterExtended.declaration.mapping.Post,
           Comment: CommentNestedFilter.declaration.mapping.Comment,
+        },
+      },
+    })
+  })
+
+  test('produceNestedFilterDeclarationMap - merge two of the same type with the same mapped type', () => {
+    const NestedFilter1 = nestedFilter({
+      type: 'Comment',
+      mapping: {
+        Post: mapValue('Post.id'),
+      },
+    })
+
+    const NestedFilter2 = nestedFilter({
+      type: 'Comment',
+      mapping: {
+        Post: mapValue('Post.id'),
+      },
+    })
+
+    const collection = [NestedFilter1, NestedFilter2]
+
+    const nestedFilterMap = produceNestedFilterDeclarationMap(collection)
+    expect(nestedFilterMap).toEqual({
+      Comment: {
+        type: 'Comment',
+        mapping: {
+          Post: NestedFilter2.declaration.mapping.Post,
         },
       },
     })

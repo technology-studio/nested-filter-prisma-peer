@@ -30,7 +30,7 @@ const isNestedFilterCollectionMap = (
   collection && typeof collection === 'object' && !('mode' in collection)
 )
 
-const traverseNestedFilterCollection = (
+export const traverseNestedFilterCollection = (
   collection: NestedFilterCollection,
   callback: (nestedFilterDefinition: NestedFilterDefinition) => void,
 ): void => {
@@ -39,8 +39,7 @@ const traverseNestedFilterCollection = (
   }
   if (Array.isArray(collection)) {
     collection.forEach(subCollection => traverseNestedFilterCollection(subCollection, callback))
-  }
-  if (isNestedFilterCollectionMap(collection)) {
+  } else if (isNestedFilterCollectionMap(collection)) {
     Object.keys(collection).forEach(key => traverseNestedFilterCollection(collection[key], callback))
   }
 }
@@ -52,14 +51,14 @@ const mergeNestedFilterMappingValues = (
   newMappingValue: NestedFilterMappingValue<any>,
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): NestedFilterMappingValue<any> => {
-  if (typeof existingMappingValue === 'boolean' || typeof newMappingValue === 'boolean') {
-    throw new Error('Mapping value can\'t be boolean, not supported yet')
+  if (typeof existingMappingValue === 'object' && typeof newMappingValue === 'object') {
+    return {
+      ...existingMappingValue,
+      ...newMappingValue,
+    }
   }
 
-  return {
-    ...(typeof existingMappingValue === 'string' ? { [existingMappingValue]: true } : existingMappingValue),
-    ...(typeof newMappingValue === 'string' ? { [newMappingValue]: true } : newMappingValue),
-  }
+  return newMappingValue
 }
 
 const mergeNestedFilterMappings = <TYPE extends Type> (
