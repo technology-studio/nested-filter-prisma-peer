@@ -139,9 +139,14 @@ RESULT
       source, args, context: resolverContext, info,
     }
     usedNestedFilters = true
+
+    const mergedMapping = {
+      ...resolverContext.nestedFilterMap[type]?.declaration.mapping,
+      ...mapping,
+    }
     return withNestedFilters({
-      mapping,
-      type: info.path.typename as Type,
+      mapping: mergedMapping,
+      type, // TODO: validate, removing probably not desired type retrieval from info ->  info.path.typename as Type,
       resolverArguments,
       pluginOptions,
       mappingResultMapList,
