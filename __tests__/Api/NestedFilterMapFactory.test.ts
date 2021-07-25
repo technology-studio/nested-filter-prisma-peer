@@ -20,8 +20,7 @@ describe('NestedFilterMapFactory', () => {
       Comment: {
         type: 'Comment',
         mapping: {
-          Author: CommentNestedFilterExtended.declaration.mapping.Author,
-          Post: CommentNestedFilter.declaration.mapping.Post,
+          Post: CommentNestedFilterExtended.declaration.mapping.Post,
           Comment: CommentNestedFilter.declaration.mapping.Comment,
         },
       },

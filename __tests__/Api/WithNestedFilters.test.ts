@@ -47,13 +47,12 @@ describe('WithNestedFilters', () => {
         await context.withNestedFilters({
           type: 'Comment',
           mapping: {
-            Author: { author: { id: mapValue('Author.id') } },
             Comment: ignored(),
           },
         })
         return [COMMENT_1]
       }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP),
-    ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Post\)\.$/)
+    ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Author\)\.$/)
   })
 
   test('withNestedFilters - should not throw exception for suppresed parent entities', async () => {
