@@ -89,10 +89,16 @@ const syncContext = (context: any, resolverContext: any): void => {
   }
 }
 
+const defaultMapResultType = (type: string): string => (
+  type.replace(/Mutation$/, '')
+)
+
 export const nestedFilterMiddlewareFactory = ({
   ignoredTypeList = [],
+  mapResultType = defaultMapResultType,
 }: {
   ignoredTypeList?: string[],
+  mapResultType?: (type: string) => string,
 } = {}) => async <
 SOURCE,
 ARGS,
@@ -110,7 +116,7 @@ RESULT
   if (!(isLeafType(info.parentType) || source instanceof Date || info.path.prev === undefined)) {
     nestedResultNode = {
       result: source,
-      type: getNamedType(info.parentType).name as Type,
+      type: mapResultType(getNamedType(info.parentType).name) as Type,
       children: {},
     }
   }
