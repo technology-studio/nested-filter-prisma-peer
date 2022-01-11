@@ -17,11 +17,13 @@ import {
   COMMENT_1,
   LEVEL_0_POST_INFO,
   LEVEL_0_RESULT_MAP,
+  LEVEL_1_ID_INFO,
+  LEVEL_1_POST_NESTED_RESULT_MAP,
   LEVEL_2_AUTHOR_INFO,
   LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP,
-  LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP, POST,
+  LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP, POST, SOME_TEXT,
 } from '../Data'
-import { Author, Comment } from '@prisma/client'
+import { Author, Comment, Post } from '@prisma/client'
 
 describe('WithNestedFilters', () => {
   test('withNestedFilters - no parent entities', async () => {
@@ -210,5 +212,27 @@ describe('WithNestedFilters', () => {
       })
       return AUTHOR
     }, COMMENT_1, undefined, LEVEL_2_AUTHOR_INFO, LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP)
+  })
+
+  test('withNestedFilters - with exlicit where attribute', async () => {
+    await invokeResolver<Post, undefined, string>(async (source, args, context, info) => {
+      const where = await context.withNestedFilters({
+        type: 'Comment',
+        where: {
+          text: SOME_TEXT,
+        },
+      })
+      expect(where).toEqual({
+        AND: [{
+          text: SOME_TEXT,
+        }, {
+          post: {
+            id: POST.id,
+            deleted: false,
+          },
+        }],
+      })
+      return source.id
+    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
   })
 })
