@@ -158,6 +158,7 @@ declare module '@txo/prisma-graphql/lib/Model/Types' {
 export type WithNestedFiltersAttributes<TYPE extends Type> = {
   type: TYPE,
   mapping?: NestedFilterMapping<GetWhere<TYPE>>,
+  where?: NestedFilterMappingValue<GetWhere<TYPE>>,
   pluginOptions?: PluginOptions,
   excludeArgsWhere?: boolean,
 }

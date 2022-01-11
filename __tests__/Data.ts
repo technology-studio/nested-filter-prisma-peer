@@ -7,7 +7,7 @@
 import type { Post, Author, Comment } from '@prisma/client'
 import { NestedResultMap, NestedResultNode } from '@txo/nested-filter-prisma'
 import type { Context } from '@txo/prisma-graphql'
-import { GraphQLObjectType, GraphQLList, GraphQLResolveInfo } from 'graphql'
+import { GraphQLObjectType, GraphQLList, GraphQLResolveInfo, GraphQLString } from 'graphql'
 
 const cloneAndAddResult = (map: NestedResultMap, pathList: string[], resultNode: NestedResultNode): NestedResultMap => {
   if (pathList.length > 1) {
@@ -31,6 +31,8 @@ const cloneAndAddResult = (map: NestedResultMap, pathList: string[], resultNode:
     [key]: resultNode,
   }
 }
+
+export const SOME_TEXT = 'Some text'
 
 export const POST: Post = {
   id: 'post.id.1',
@@ -90,6 +92,13 @@ export const LEVEL_1_COMMENT_LIST_INFO = {
     name: 'Comment',
     fields: {},
   })),
+} as unknown as GraphQLResolveInfo
+
+export const LEVEL_1_ID_INFO = {
+  fieldName: 'id',
+  path: { prev: LEVEL_0_POST_INFO.path, key: 'id', typename: 'Post' },
+  parentType: LEVEL_0_POST_INFO.returnType,
+  returnType: GraphQLString,
 } as unknown as GraphQLResolveInfo
 
 export const LEVEL_1_POST_NESTED_ARG_MAP = {

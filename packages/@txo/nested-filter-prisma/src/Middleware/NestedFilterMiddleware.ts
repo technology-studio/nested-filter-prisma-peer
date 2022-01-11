@@ -137,6 +137,7 @@ RESULT
 
   resolverContext.withNestedFilters = async <TYPE extends Type>({
     type,
+    where,
     mapping,
     pluginOptions,
     excludeArgsWhere,
@@ -153,6 +154,7 @@ RESULT
     return withNestedFilters({
       mapping: mergedMapping,
       type, // TODO: validate, removing probably not desired type retrieval from info ->  info.path.typename as Type,
+      where,
       resolverArguments,
       pluginOptions,
       mappingResultMapList,
