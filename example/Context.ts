@@ -19,6 +19,12 @@ export function createContext (): Context {
     withNestedFilters: async () => {
       throw new Error('nested filter hasn\'t been configured')
     },
+    getNestedResult: async () => {
+      throw new Error('nested filter hasn\'t been configured')
+    },
+    addNestedResult: () => {
+      throw new Error('nested filter hasn\'t been configured')
+    },
     request: {
       headers: {},
     },

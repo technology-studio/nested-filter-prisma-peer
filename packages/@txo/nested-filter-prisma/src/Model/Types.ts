@@ -137,6 +137,7 @@ export type NestedFilterCollection = (
 export type NestedResultNode = {
   result?: AllStructures,
   type?: Type,
+  nestedArgMap: NestedArgMap,
   children: NestedResultMap,
 }
 
@@ -152,6 +153,15 @@ declare module '@txo/prisma-graphql/lib/Model/Types' {
     withNestedFilters: <TYPE extends Type> (
       attributes: WithNestedFiltersAttributes<TYPE>
     ) => Promise<GetWhere<TYPE>>,
+    getNestedResult: <TYPE extends Type>(
+      type: TYPE,
+      onGet?: () => Promise<GetStructure<TYPE>>
+    ) => Promise<GetStructure<TYPE>>,
+    addNestedResult: <TYPE extends Type>(
+      type: TYPE,
+      result: GetStructure<TYPE>
+    ) => void,
+
   }
 }
 

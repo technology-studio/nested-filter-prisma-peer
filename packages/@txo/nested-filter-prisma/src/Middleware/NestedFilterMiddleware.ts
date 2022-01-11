@@ -30,7 +30,7 @@ const getPathList = (path: GraphQLResolveInfo['path']): string[] => [
 const getOrCreateNode = (map: NestedResultMap, key: string): NestedResultNode => {
   const value = map[key]
   if (!value) {
-    map[key] = { children: {} }
+    map[key] = { children: {}, nestedArgMap: {} }
   }
   return map[key]
 }
@@ -49,10 +49,13 @@ const setNestedResultAndGetNestedArgMap = (
   log.debug('setNestedResultAndGetNestedArgMap', { key, restPathList, nestedResultMap, nestedArgMap, nestedResultNode })
 
   if (restPathList.length > 1) {
-    const { type, result, children } = getOrCreateNode(nestedResultMap, key)
+    const { type, result, children, nestedArgMap: nodeNestedArgMap } = getOrCreateNode(nestedResultMap, key)
 
     if (type && result) {
       nestedArgMap[type] = result
+      for (const _type in nodeNestedArgMap) {
+        nestedArgMap[_type as Type] = nodeNestedArgMap[_type as Type]
+      }
     }
     return setNestedResultAndGetNestedArgMap(
       children,
@@ -118,6 +121,7 @@ RESULT
       result: source,
       type: mapResultType(getNamedType(info.parentType).name) as Type,
       children: {},
+      nestedArgMap: {},
     }
   }
   const nestedArgMap = setNestedResultAndGetNestedArgMap(
@@ -160,6 +164,26 @@ RESULT
       mappingResultMapList,
       excludeArgsWhere,
     })
+  }
+
+  resolverContext.getNestedResult = async (type, onGet) => {
+    if (type in nestedArgMap) {
+      return nestedArgMap[type]
+    }
+
+    if (onGet) {
+      const result = await onGet()
+      resolverContext.addNestedResult(type, result)
+      return result
+    }
+    throw new Error(`Nested result for (${type}) is not present.`)
+  }
+
+  resolverContext.addNestedResult = (type, result) => {
+    nestedArgMap[type] = result
+    if (nestedResultNode) {
+      nestedResultNode.nestedArgMap[type] = result
+    }
   }
 
   const result = await resolve(source, args, resolverContext, info)

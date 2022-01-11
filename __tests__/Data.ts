@@ -110,6 +110,7 @@ export const LEVEL_1_POST_NESTED_RESULT_MAP: NestedResultMap = {
     type: 'Post',
     result: POST,
     children: {},
+    nestedArgMap: {},
   },
 }
 
@@ -135,6 +136,7 @@ export const LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP = cloneAndAddResult(
     type: 'Comment',
     result: COMMENT_1,
     children: {},
+    nestedArgMap: {},
   },
 )
 
@@ -155,5 +157,6 @@ export const LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP = cloneAndAddResult(
     type: 'Author',
     result: AUTHOR,
     children: {},
+    nestedArgMap: {},
   },
 )
