@@ -18,7 +18,7 @@ import type {
   Type,
   WithNestedFiltersAttributes,
 } from '../Model/Types'
-import { reportMissingNestedFilters } from '../Api'
+import { addResultToCache, getCachedResult, isResultCached, reportMissingNestedFilters } from '../Api'
 
 const log = new Log('txo.nested-filter-prisma.Middleware.NestedFilterMiddleware')
 
@@ -166,20 +166,27 @@ RESULT
     })
   }
 
-  resolverContext.getNestedResult = async (type, onGet) => {
+  resolverContext.getNestedResult = async ({ type, onGet, cacheKey, cacheKeyAttribute = 'id' }) => {
     if (type in nestedArgMap) {
       return nestedArgMap[type]
     }
 
     if (onGet) {
-      const result = await onGet()
-      resolverContext.addNestedResult(type, result)
+      let result
+      if (cacheKey !== undefined && isResultCached(type, cacheKey)) {
+        result = getCachedResult(type, cacheKey)
+      } else {
+        result = await onGet()
+        addResultToCache(type, cacheKey === undefined ? result[cacheKeyAttribute] : cacheKey, result)
+      }
+
+      resolverContext.addNestedResult({ type, result })
       return result
     }
     throw new Error(`Nested result for (${type}) is not present.`)
   }
 
-  resolverContext.addNestedResult = (type, result) => {
+  resolverContext.addNestedResult = ({ type, result }) => {
     nestedArgMap[type] = result
     if (nestedResultNode) {
       nestedResultNode.nestedArgMap[type] = result
