@@ -159,6 +159,14 @@ export type AddNestedResultAttributes<TYPE extends Type> = {
   result: GetStructure<TYPE>,
 }
 
+export interface ResultCache {
+  resetCache: () => void,
+  isResultCached: (type: Type, key: CacheKey) => boolean,
+  getCachedResult: <VALUE>(type: Type, key: CacheKey) => VALUE,
+
+  addResultToCache: <VALUE>(type: Type, key: CacheKey, value: VALUE) => void,
+}
+
 declare module '@txo/prisma-graphql/lib/Model/Types' {
   export interface Context {
     nestedArgMap: NestedArgMap,
@@ -173,7 +181,7 @@ declare module '@txo/prisma-graphql/lib/Model/Types' {
     addNestedResult: <TYPE extends Type>(
       attributes: AddNestedResultAttributes<TYPE>
     ) => void,
-
+    resultCache: ResultCache,
   }
 }
 

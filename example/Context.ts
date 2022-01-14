@@ -4,13 +4,14 @@
  * @Copyright: Technology Studio
 **/
 
-import { createNestedFilterMap } from '@txo/nested-filter-prisma'
+import { createNestedFilterMap, ResultCache } from '@txo/nested-filter-prisma'
 import { PrismaClient } from '@prisma/client'
 import type { Context } from '@txo/prisma-graphql'
 
 import { nestedFilterList } from './NestedFilters'
 
-export function createContext (): Context {
+export function createContext (attributes?: { resultCache?: ResultCache | null}): Context {
+  const { resultCache = null } = (attributes ?? {})
   return {
     prisma: new PrismaClient({}),
     nestedFilterMap: createNestedFilterMap(nestedFilterList),
@@ -28,6 +29,7 @@ export function createContext (): Context {
     request: {
       headers: {},
     },
+    resultCache: resultCache as unknown as ResultCache,
   }
 }
 

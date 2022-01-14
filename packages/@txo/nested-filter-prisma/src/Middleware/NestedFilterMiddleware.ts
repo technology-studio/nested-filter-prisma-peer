@@ -18,7 +18,7 @@ import type {
   Type,
   WithNestedFiltersAttributes,
 } from '../Model/Types'
-import { addResultToCache, getCachedResult, isResultCached, reportMissingNestedFilters } from '../Api'
+import { reportMissingNestedFilters, ResultCacheImpl } from '../Api'
 
 const log = new Log('txo.nested-filter-prisma.Middleware.NestedFilterMiddleware')
 
@@ -133,6 +133,7 @@ RESULT
 
   const resolverContext: Context = {
     ...context,
+    resultCache: context.resultCache ?? new ResultCacheImpl(),
     nestedArgMap,
   }
 
@@ -173,11 +174,11 @@ RESULT
 
     if (onGet) {
       let result
-      if (cacheKey !== undefined && isResultCached(type, cacheKey)) {
-        result = getCachedResult(type, cacheKey)
+      if (cacheKey !== undefined && resolverContext.resultCache.isResultCached(type, cacheKey)) {
+        result = resolverContext.resultCache.getCachedResult(type, cacheKey)
       } else {
         result = await onGet()
-        addResultToCache(type, cacheKey === undefined ? result[cacheKeyAttribute] : cacheKey, result)
+        resolverContext.resultCache.addResultToCache(type, cacheKey === undefined ? result[cacheKeyAttribute] : cacheKey, result)
       }
 
       resolverContext.addNestedResult({ type, result })

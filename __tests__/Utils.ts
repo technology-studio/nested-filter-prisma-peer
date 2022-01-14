@@ -8,7 +8,9 @@ import type { GraphQLResolveInfo } from 'graphql'
 import type { Context } from '@txo/prisma-graphql'
 
 import {
-  nestedFilterMiddlewareFactory, NestedResultMap,
+  nestedFilterMiddlewareFactory,
+  NestedResultMap,
+  ResultCache,
 } from '@txo/nested-filter-prisma'
 
 import { createContext } from '../example/Context'
@@ -26,8 +28,11 @@ export const invokeResolver = async <SOURCE, ARGS, RESULT>(
   args: ARGS,
   info: GraphQLResolveInfo,
   nestedResultMap: NestedResultMap,
+  options?: {
+    resultCache?: ResultCache,
+  },
 ): Promise<{ context: Context, result: RESULT }> => {
-  const context: Context = createContext()
+  const context: Context = createContext(options)
   context.nestedResultMap = JSON.parse(JSON.stringify(nestedResultMap))
   return {
     context,

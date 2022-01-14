@@ -12,7 +12,7 @@ import {
   AUTHOR,
 } from '../Data'
 import { Author, Post } from '@prisma/client'
-import { destroyResultCache } from '@txo/nested-filter-prisma'
+import { ResultCacheImpl } from '@txo/nested-filter-prisma'
 
 describe('getNestedResult', () => {
   test('getNestedResult - return existing value', async () => {
@@ -58,20 +58,20 @@ describe('getNestedResult', () => {
   })
 
   test('getNestedResult - return cached value', async () => {
-    destroyResultCache()
+    const resultCache = new ResultCacheImpl()
     const onGet = jest.fn(async (): Promise<Author> => AUTHOR)
     await invokeResolver<Post, undefined, string>(async (source, args, context, info) => {
       const result = await context.getNestedResult({ type: 'Author', onGet, cacheKey: AUTHOR.id })
       expect(result).toEqual(AUTHOR)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
+    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP, { resultCache })
 
     expect(onGet).toBeCalledTimes(1)
     await invokeResolver<Post, undefined, string>(async (source, args, context, info) => {
       const result = await context.getNestedResult({ type: 'Author', onGet, cacheKey: AUTHOR.id })
       expect(result).toEqual(AUTHOR)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
+    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP, { resultCache })
     expect(onGet).toBeCalledTimes(1)
   })
 })
