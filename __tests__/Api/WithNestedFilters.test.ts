@@ -16,12 +16,12 @@ import {
   AUTHOR,
   COMMENT_1,
   LEVEL_0_POST_INFO,
-  LEVEL_0_RESULT_MAP,
+  LEVEL_0_RESULT_NODE,
   LEVEL_1_ID_INFO,
-  LEVEL_1_POST_NESTED_RESULT_MAP,
+  LEVEL_1_POST_NESTED_RESULT_NODE,
   LEVEL_2_AUTHOR_INFO,
-  LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP,
-  LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP, POST, SOME_TEXT,
+  LEVEL_2_POST_COMMENT_NESTED_RESULT_NODE,
+  LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE, POST, SOME_TEXT,
 } from '../Data'
 import { Author, Comment, Post } from '@prisma/client'
 
@@ -40,7 +40,7 @@ describe('WithNestedFilters', () => {
         ],
       })
       return undefined
-    }, undefined, undefined, LEVEL_0_POST_INFO, LEVEL_0_RESULT_MAP)
+    }, undefined, undefined, LEVEL_0_POST_INFO, { rootNestedResultNode: LEVEL_0_RESULT_NODE })
   })
 
   test('withNestedFilters - throw exception for not mapped parent entity', async () => {
@@ -53,7 +53,7 @@ describe('WithNestedFilters', () => {
           },
         })
         return [COMMENT_1]
-      }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP),
+      }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE }),
     ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Author\)\.$/)
   })
 
@@ -75,7 +75,7 @@ describe('WithNestedFilters', () => {
         }],
       })
       return [COMMENT_1]
-    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP)
+    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE })
   })
 
   test('withNestedFilters - throw exception for not mapped parent entity if suppressed doesn\'t contain value', async () => {
@@ -93,7 +93,7 @@ describe('WithNestedFilters', () => {
           AND: [],
         })
         return [COMMENT_1]
-      }, {}, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP),
+      }, {}, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE }),
     ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Post,Author\)\.$/)
   })
 
@@ -115,7 +115,7 @@ describe('WithNestedFilters', () => {
         }],
       })
       return [COMMENT_1]
-    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP)
+    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE })
   })
 
   test('withNestedFilters - throw exception for not mapped parent entity if suppressed contains value, but mapping is missing', async () => {
@@ -132,7 +132,7 @@ describe('WithNestedFilters', () => {
           AND: [],
         })
         return [COMMENT_1]
-      }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP),
+      }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE }),
     ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Post,Author\)\.$/)
   })
 
@@ -158,7 +158,7 @@ describe('WithNestedFilters', () => {
         }],
       })
       return [COMMENT_1]
-    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP)
+    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE })
   })
 
   test('withNestedFilters - with two parent entities with mapFilter', async () => {
@@ -185,7 +185,7 @@ describe('WithNestedFilters', () => {
         }],
       })
       return [COMMENT_1]
-    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP)
+    }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE })
   })
 
   test('withNestedFilters - with transitive relation', async () => {
@@ -211,7 +211,7 @@ describe('WithNestedFilters', () => {
         }],
       })
       return AUTHOR
-    }, COMMENT_1, undefined, LEVEL_2_AUTHOR_INFO, LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP)
+    }, COMMENT_1, undefined, LEVEL_2_AUTHOR_INFO, { rootNestedResultNode: LEVEL_2_POST_COMMENT_NESTED_RESULT_NODE })
   })
 
   test('withNestedFilters - with exlicit where attribute', async () => {
@@ -233,6 +233,6 @@ describe('WithNestedFilters', () => {
         }],
       })
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
+    }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE })
   })
 })

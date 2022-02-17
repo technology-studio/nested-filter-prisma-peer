@@ -5,20 +5,20 @@
 **/
 
 import type { Post, Author, Comment } from '@prisma/client'
-import { NestedResultMap, NestedResultNode } from '@txo/nested-filter-prisma'
+import { NestedResultNode } from '@txo/nested-filter-prisma'
 import type { Context } from '@txo/prisma-graphql'
 import { GraphQLObjectType, GraphQLList, GraphQLResolveInfo, GraphQLString } from 'graphql'
 
-const cloneAndAddResult = (map: NestedResultMap, pathList: string[], resultNode: NestedResultNode): NestedResultMap => {
+const cloneAndAddResult = (node: NestedResultNode, pathList: string[], resultNode: NestedResultNode): NestedResultNode => {
   if (pathList.length > 1) {
     const [key, ...restPathList] = pathList
-    const node = map[key] ?? { children: {} }
+    const childNode: NestedResultNode = node.children[key] ?? { children: {} }
     return {
-      ...map,
-      [key]: {
-        ...node,
-        children: cloneAndAddResult(
-          node.children,
+      ...node,
+      children: {
+        ...node.children,
+        [key]: cloneAndAddResult(
+          childNode,
           restPathList,
           resultNode,
         ),
@@ -27,8 +27,11 @@ const cloneAndAddResult = (map: NestedResultMap, pathList: string[], resultNode:
   }
   const [key] = pathList
   return {
-    ...map,
-    [key]: resultNode,
+    ...node,
+    children: {
+      ...node.children,
+      [key]: resultNode,
+    },
   }
 }
 
@@ -82,7 +85,11 @@ export const LEVEL_0_POST_INFO = {
   }),
 } as unknown as GraphQLResolveInfo
 
-export const LEVEL_0_RESULT_MAP = {}
+export const LEVEL_0_RESULT_NODE = {
+  children: {},
+  nestedArgMap: {},
+  childrenNestedArgMap: {},
+}
 
 export const LEVEL_1_COMMENT_LIST_INFO = {
   fieldName: 'commentList',
@@ -105,14 +112,17 @@ export const LEVEL_1_POST_NESTED_ARG_MAP = {
   Post: POST,
 }
 
-export const LEVEL_1_POST_NESTED_RESULT_MAP: NestedResultMap = {
-  post: {
+export const LEVEL_1_POST_NESTED_RESULT_NODE: NestedResultNode = cloneAndAddResult(
+  LEVEL_0_RESULT_NODE,
+  ['post'],
+  {
     type: 'Post',
     result: POST,
     children: {},
     nestedArgMap: {},
+    childrenNestedArgMap: {},
   },
-}
+)
 
 export const LEVEL_2_AUTHOR_INFO = {
   fieldName: 'author',
@@ -129,14 +139,15 @@ export const LEVEL_2_POST_COMMENT_NESTED_ARG_MAP = {
   Comment: COMMENT_1,
 }
 
-export const LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP = cloneAndAddResult(
-  LEVEL_1_POST_NESTED_RESULT_MAP,
+export const LEVEL_2_POST_COMMENT_NESTED_RESULT_NODE = cloneAndAddResult(
+  LEVEL_1_POST_NESTED_RESULT_NODE,
   ['post', 'commentList', '0'],
   {
     type: 'Comment',
     result: COMMENT_1,
     children: {},
     nestedArgMap: {},
+    childrenNestedArgMap: {},
   },
 )
 
@@ -150,13 +161,14 @@ export const LEVEL_3_COMMENT_LIST_INFO = {
   })),
 } as unknown as GraphQLResolveInfo
 
-export const LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_MAP = cloneAndAddResult(
-  LEVEL_2_POST_COMMENT_NESTED_RESULT_MAP,
+export const LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE = cloneAndAddResult(
+  LEVEL_2_POST_COMMENT_NESTED_RESULT_NODE,
   ['post', 'commentList', '0', 'author'],
   {
     type: 'Author',
     result: AUTHOR,
     children: {},
     nestedArgMap: {},
+    childrenNestedArgMap: {},
   },
 )

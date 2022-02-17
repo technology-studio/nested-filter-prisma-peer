@@ -139,6 +139,7 @@ export type NestedResultNode = {
   type?: Type,
   nestedArgMap: NestedArgMap,
   children: NestedResultMap,
+  childrenNestedArgMap: NestedArgMap,
 }
 
 export type NestedResultMap = {
@@ -154,9 +155,15 @@ export type GetNestedResultAttributes<TYPE extends Type> = {
   cacheKeyAttribute?: string,
 }
 
+export const enum AddNestedResutMode {
+  CURRENT='current',
+  CHILDREN='children',
+}
+
 export type AddNestedResultAttributes<TYPE extends Type> = {
   type: TYPE,
   result: GetStructure<TYPE>,
+  mode?: AddNestedResutMode,
 }
 
 export interface ResultCache {
@@ -170,7 +177,7 @@ export interface ResultCache {
 declare module '@txo/prisma-graphql/lib/Model/Types' {
   export interface Context {
     nestedArgMap: NestedArgMap,
-    nestedResultMap: NestedResultMap,
+    rootNestedResultNode: NestedResultNode,
     nestedFilterMap: NestedFilterMap,
     withNestedFilters: <TYPE extends Type> (
       attributes: WithNestedFiltersAttributes<TYPE>

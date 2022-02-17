@@ -15,8 +15,8 @@ import {
   LEVEL_0_POST_INFO,
   LEVEL_1_COMMENT_LIST_INFO,
   LEVEL_1_POST_NESTED_ARG_MAP,
-  LEVEL_1_POST_NESTED_RESULT_MAP,
-  LEVEL_0_RESULT_MAP,
+  LEVEL_1_POST_NESTED_RESULT_NODE,
+  LEVEL_0_RESULT_NODE,
 } from '../Data'
 import {
   nestedFilterMiddleware,
@@ -45,7 +45,7 @@ describe('NestedFilterMiddleware', () => {
       LEVEL_0_POST_INFO,
     )
 
-    expect(context.nestedResultMap).toEqual(LEVEL_0_RESULT_MAP)
+    expect(context.rootNestedResultNode).toEqual(LEVEL_0_RESULT_NODE)
     expect(result).toEqual(POST)
   })
 
@@ -82,7 +82,7 @@ describe('NestedFilterMiddleware', () => {
       LEVEL_1_COMMENT_LIST_INFO,
     )
 
-    expect(context.nestedResultMap).toEqual(LEVEL_1_POST_NESTED_RESULT_MAP)
+    expect(context.rootNestedResultNode).toEqual(LEVEL_1_POST_NESTED_RESULT_NODE)
     expect(resultCommentList).toEqual([COMMENT_1, COMMENT_2])
   })
 })

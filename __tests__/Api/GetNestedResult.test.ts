@@ -8,7 +8,7 @@ import { invokeResolver } from '../Utils'
 import {
   POST,
   LEVEL_1_ID_INFO,
-  LEVEL_1_POST_NESTED_RESULT_MAP,
+  LEVEL_1_POST_NESTED_RESULT_NODE,
   AUTHOR,
 } from '../Data'
 import { Author, Post } from '@prisma/client'
@@ -21,7 +21,7 @@ describe('getNestedResult', () => {
 
       expect(result).toEqual(POST)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
+    }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE })
   })
 
   test('getNestedResult - throw exception for existing result', async () => {
@@ -31,7 +31,7 @@ describe('getNestedResult', () => {
 
         expect(result).toEqual(POST)
         return source.id
-      }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP),
+      }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE }),
     ).rejects.toThrow(/^Nested result for \(Author\) is not present\.$/)
   })
 
@@ -42,7 +42,7 @@ describe('getNestedResult', () => {
 
       expect(result).toEqual(AUTHOR)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
+    }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE })
     expect(onGet).toBeCalledTimes(1)
   })
 
@@ -53,7 +53,7 @@ describe('getNestedResult', () => {
       const result = await context.getNestedResult({ type: 'Author', onGet })
       expect(result).toEqual(AUTHOR)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP)
+    }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE })
     expect(onGet).toBeCalledTimes(1)
   })
 
@@ -64,14 +64,14 @@ describe('getNestedResult', () => {
       const result = await context.getNestedResult({ type: 'Author', onGet, cacheKey: AUTHOR.id })
       expect(result).toEqual(AUTHOR)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP, { resultCache })
+    }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE, resultCache })
 
     expect(onGet).toBeCalledTimes(1)
     await invokeResolver<Post, undefined, string>(async (source, args, context, info) => {
       const result = await context.getNestedResult({ type: 'Author', onGet, cacheKey: AUTHOR.id })
       expect(result).toEqual(AUTHOR)
       return source.id
-    }, POST, undefined, LEVEL_1_ID_INFO, LEVEL_1_POST_NESTED_RESULT_MAP, { resultCache })
+    }, POST, undefined, LEVEL_1_ID_INFO, { rootNestedResultNode: LEVEL_1_POST_NESTED_RESULT_NODE, resultCache })
     expect(onGet).toBeCalledTimes(1)
   })
 })

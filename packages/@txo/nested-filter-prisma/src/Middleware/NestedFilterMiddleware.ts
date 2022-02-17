@@ -9,7 +9,8 @@ import { Log } from '@txo/log'
 import type { Context } from '@txo/prisma-graphql'
 
 import { withNestedFilters } from '../Api/WithNestedFilters'
-import type {
+import {
+  AddNestedResutMode,
   GetWhere,
   MappingResultMap,
   NestedArgMap,
@@ -30,48 +31,61 @@ const getPathList = (path: GraphQLResolveInfo['path']): string[] => [
 const getOrCreateNode = (map: NestedResultMap, key: string): NestedResultNode => {
   const value = map[key]
   if (!value) {
-    map[key] = { children: {}, nestedArgMap: {} }
+    map[key] = { children: {}, nestedArgMap: {}, childrenNestedArgMap: {} }
   }
   return map[key]
 }
 
 const setNestedResultAndGetNestedArgMap = (
-  nestedResultMap: NestedResultMap,
+  nestedResultNode: NestedResultNode,
   pathList: string[],
   nestedArgMap: NestedArgMap,
-  nestedResultNode?: NestedResultNode,
+  currentNestedResultNode: NestedResultNode | undefined,
 ): NestedArgMap => {
   if (!pathList.length) {
     throw new Error('Empty path')
   }
   const [key, ...restPathList] = pathList
 
-  log.debug('setNestedResultAndGetNestedArgMap', { key, restPathList, nestedResultMap, nestedArgMap, nestedResultNode })
+  log.debug('setNestedResultAndGetNestedArgMap', { pathList, key, restPathList, nestedResultNode, nestedArgMap, currentNestedResultNode })
 
-  if (restPathList.length > 1) {
-    const { type, result, children, nestedArgMap: nodeNestedArgMap } = getOrCreateNode(nestedResultMap, key)
+  if (restPathList.length > 0) {
+    const childNestedResultNode = getOrCreateNode(nestedResultNode.children, key)
+    const {
+      type,
+      result,
+      nestedArgMap: nodeNestedArgMap,
+    } = childNestedResultNode
 
+    log.debug('setNestedResultAndGetNestedArgMap child', { key, childNestedResultNode })
     if (type && result) {
-      nestedArgMap[type] = result
-      for (const _type in nodeNestedArgMap) {
-        nestedArgMap[_type as Type] = nodeNestedArgMap[_type as Type]
-      }
+      nestedArgMap[type] = childNestedResultNode.result
     }
-    return setNestedResultAndGetNestedArgMap(
-      children,
-      restPathList,
-      nestedArgMap,
-      nestedResultNode,
-    )
+
+    for (const _type in nodeNestedArgMap) {
+      nestedArgMap[_type as Type] = nodeNestedArgMap[_type as Type]
+    }
+
+    for (const _type in nestedResultNode.childrenNestedArgMap) {
+      nestedArgMap[_type as Type] = nestedResultNode.childrenNestedArgMap[_type as Type]
+    }
+    if (restPathList.length > 1) {
+      return setNestedResultAndGetNestedArgMap(
+        childNestedResultNode,
+        restPathList,
+        nestedArgMap,
+        currentNestedResultNode,
+      )
+    }
   }
 
-  if (nestedResultNode) {
-    nestedResultMap[key] = nestedResultNode
+  if (currentNestedResultNode) {
+    nestedResultNode.children[key] = currentNestedResultNode
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    nestedArgMap[nestedResultNode.type!] = nestedResultNode.result
+    nestedArgMap[currentNestedResultNode.type!] = currentNestedResultNode.result
   }
 
-  log.debug('setNestedResultAndGetNestedArgMap final', { key, restPathList, nestedResultMap, nestedArgMap, nestedResultNode })
+  log.debug('setNestedResultAndGetNestedArgMap final', { pathList, key, restPathList, nestedResultNode, nestedArgMap, currentNestedResultNode })
   return nestedArgMap
 }
 
@@ -122,14 +136,19 @@ RESULT
       type: mapResultType(getNamedType(info.parentType).name) as Type,
       children: {},
       nestedArgMap: {},
+      childrenNestedArgMap: {},
     }
   }
   const nestedArgMap = setNestedResultAndGetNestedArgMap(
-    context.nestedResultMap,
+    context.rootNestedResultNode,
     pathList,
     {},
     nestedResultNode,
   )
+
+  if (info.path.prev === undefined) {
+    nestedResultNode = context.rootNestedResultNode
+  }
 
   const resolverContext: Context = {
     ...context,
@@ -187,10 +206,15 @@ RESULT
     throw new Error(`Nested result for (${type}) is not present.`)
   }
 
-  resolverContext.addNestedResult = ({ type, result }) => {
-    nestedArgMap[type] = result
+  resolverContext.addNestedResult = ({ type, result, mode }) => {
     if (nestedResultNode) {
-      nestedResultNode.nestedArgMap[type] = result
+      if (mode === AddNestedResutMode.CHILDREN) {
+        nestedResultNode.childrenNestedArgMap[type] = result
+      } else {
+        nestedArgMap[type] = result
+        nestedResultNode.nestedArgMap[type] = result
+      }
+      log.debug('addNestedResult', { nestedArgMap })
     }
   }
 

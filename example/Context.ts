@@ -4,33 +4,19 @@
  * @Copyright: Technology Studio
 **/
 
-import { createNestedFilterMap, ResultCache } from '@txo/nested-filter-prisma'
+import { createNestedFilterMap, ResultCache, createContext as _createContext } from '@txo/nested-filter-prisma'
 import { PrismaClient } from '@prisma/client'
 import type { Context } from '@txo/prisma-graphql'
 
 import { nestedFilterList } from './NestedFilters'
 
-export function createContext (attributes?: { resultCache?: ResultCache | null}): Context {
-  const { resultCache = null } = (attributes ?? {})
-  return {
-    prisma: new PrismaClient({}),
-    nestedFilterMap: createNestedFilterMap(nestedFilterList),
-    nestedArgMap: {},
-    nestedResultMap: {},
-    withNestedFilters: async () => {
-      throw new Error('nested filter hasn\'t been configured')
-    },
-    getNestedResult: async () => {
-      throw new Error('nested filter hasn\'t been configured')
-    },
-    addNestedResult: () => {
-      throw new Error('nested filter hasn\'t been configured')
-    },
-    request: {
-      headers: {},
-    },
-    resultCache: resultCache as unknown as ResultCache,
-  }
-}
+export const createContext = (attributes?: { resultCache?: ResultCache }): Context => _createContext({
+  prisma: new PrismaClient({}),
+  nestedFilterMap: createNestedFilterMap(nestedFilterList),
+  request: {
+    headers: {},
+  },
+  resultCache: attributes?.resultCache as unknown as ResultCache,
+})
 
 export const context = createContext()
