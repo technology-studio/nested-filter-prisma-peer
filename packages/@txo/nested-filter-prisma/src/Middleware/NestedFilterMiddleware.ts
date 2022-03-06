@@ -158,7 +158,8 @@ RESULT
   }
 
   let usedNestedFilters = false
-  const mappingResultMapList: MappingResultMap<unknown>[] = []
+
+  const typeToMappingResultMapList: Record<string, MappingResultMap<unknown>[]> = {}
 
   resolverContext.withNestedFilters = async <TYPE extends Type>({
     type,
@@ -182,12 +183,12 @@ RESULT
       where,
       resolverArguments,
       pluginOptions,
-      mappingResultMapList,
+      typeToMappingResultMapList,
       excludeArgsWhere,
     })
   }
 
-  resolverContext.getNestedResult = async ({ type, onGet, cacheKey, cacheKeyAttribute = 'id' }) => {
+  resolverContext.getNestedResult = async ({ type, onGet, cacheKey, cacheKeyAttribute = 'id', addNestedResult = false }) => {
     if (type in nestedArgMap) {
       return nestedArgMap[type]
     }
@@ -204,8 +205,9 @@ RESULT
         const key = cacheKey === undefined ? (result as Record<string, CacheKey>)[cacheKeyAttribute] : cacheKey
         resolverContext.resultCache.addResultToCache(type, key, result)
       }
-
-      resolverContext.addNestedResult({ type, result })
+      if (addNestedResult) {
+        resolverContext.addNestedResult({ type, result })
+      }
       return result
     }
     throw new Error(`Nested result for (${type}) is not present.`)
@@ -225,13 +227,16 @@ RESULT
 
   const result = await resolve(source, args, resolverContext, info)
 
-  log.debug('nestedFilterMiddleware after resolve', { pathList, mappingResultMapList, nestedArgMap: resolverContext.nestedArgMap, ignoredTypeList, usedNestedFilters })
+  log.debug('nestedFilterMiddleware after resolve', { pathList, typeToMappingResultMapList, nestedArgMap: resolverContext.nestedArgMap, ignoredTypeList, usedNestedFilters })
   if (usedNestedFilters) {
-    reportMissingNestedFilters(
-      ignoredTypeList,
-      mappingResultMapList,
-      resolverContext.nestedArgMap,
-    )
+    Object.keys(typeToMappingResultMapList).forEach(type => {
+      reportMissingNestedFilters(
+        type,
+        ignoredTypeList,
+        typeToMappingResultMapList[type],
+        resolverContext.nestedArgMap,
+      )
+    })
   }
 
   syncContext(context, resolverContext)

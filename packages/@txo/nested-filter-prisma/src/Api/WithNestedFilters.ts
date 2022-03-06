@@ -27,7 +27,7 @@ export const withNestedFilters = async <TYPE extends Type>({
   type,
   pluginOptions,
   resolverArguments,
-  mappingResultMapList,
+  typeToMappingResultMapList,
   excludeArgsWhere,
 }: {
   // TODO: add support to call resolver for filters so we allow composite constructs shared for other resolvers
@@ -36,7 +36,7 @@ export const withNestedFilters = async <TYPE extends Type>({
   resolverArguments: ResolverArguments,
   type: Type,
   pluginOptions?: PluginOptions,
-  mappingResultMapList: MappingResultMap<unknown>[],
+  typeToMappingResultMapList: Record<Type, MappingResultMap<unknown>[]>,
   excludeArgsWhere?: boolean,
 }): Promise<GetWhere<TYPE>> => {
   const subWhereList = []
@@ -61,6 +61,12 @@ export const withNestedFilters = async <TYPE extends Type>({
         subWhereList.push(whereResult.where)
       }
     }
+  }
+
+  let mappingResultMapList = typeToMappingResultMapList[type]
+  if (!mappingResultMapList) {
+    mappingResultMapList = []
+    typeToMappingResultMapList[type] = mappingResultMapList
   }
 
   mappingResultMapList.push(mappingResultMap)

@@ -57,10 +57,10 @@ describe('getNestedResult', () => {
     expect(onGet).toBeCalledTimes(1)
   })
 
-  test('getNestedResult - return explicitly added result value', async () => {
+  test('getNestedResult - return explicitly added result value if add result enabled', async () => {
     const onGet = jest.fn(async (): Promise<Author> => AUTHOR)
     await invokeResolver<Post, undefined, string>(async (source, args, context, info) => {
-      await context.getNestedResult({ type: 'Author', onGet })
+      await context.getNestedResult({ type: 'Author', onGet, addNestedResult: true })
       const result = await context.getNestedResult({ type: 'Author', onGet })
       expect(result).toEqual(AUTHOR)
       return source.id

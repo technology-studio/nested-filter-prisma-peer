@@ -153,6 +153,7 @@ export type GetNestedResultAttributes<TYPE extends Type, EXTRA_TYPE = unknown> =
   onGet?: () => Promise<unknown extends EXTRA_TYPE ? GetStructure<TYPE> : (GetStructure<TYPE> | EXTRA_TYPE)>,
   cacheKey?: CacheKey,
   cacheKeyAttribute?: string,
+  addNestedResult?: boolean,
 }
 
 export const enum AddNestedResutMode {

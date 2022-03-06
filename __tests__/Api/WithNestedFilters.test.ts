@@ -54,7 +54,7 @@ describe('WithNestedFilters', () => {
         })
         return [COMMENT_1]
       }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE }),
-    ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Author\)\.$/)
+    ).rejects.toThrow(/^Comment nested filter doesn't contain mapping for following types \(Author\)\.$/)
   })
 
   test('withNestedFilters - should not throw exception for suppresed parent entities', async () => {
@@ -94,7 +94,7 @@ describe('WithNestedFilters', () => {
         })
         return [COMMENT_1]
       }, {}, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE }),
-    ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Post,Author\)\.$/)
+    ).rejects.toThrow(/^Comment nested filter doesn't contain mapping for following types \(Post,Author\)\.$/)
   })
 
   test('withNestedFilters - should not throw exception for ignored parent entities', async () => {
@@ -133,7 +133,7 @@ describe('WithNestedFilters', () => {
         })
         return [COMMENT_1]
       }, AUTHOR, undefined, LEVEL_3_COMMENT_LIST_INFO, { rootNestedResultNode: LEVEL_3_POST_COMMENT_AUTHOR_NESTED_RESULT_NODE }),
-    ).rejects.toThrow(/^Nested filters has not been mapped for following types \(Post,Author\)\.$/)
+    ).rejects.toThrow(/^Comment nested filter doesn't contain mapping for following types \(Post,Author\)\.$/)
   })
 
   test('withNestedFilters - with two parent entities with mapValue', async () => {

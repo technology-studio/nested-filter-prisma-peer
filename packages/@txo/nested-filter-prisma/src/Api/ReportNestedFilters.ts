@@ -74,6 +74,7 @@ type TypeMapping = {
 }
 
 export const reportMissingNestedFilters = (
+  type: string,
   ignoredTypeList: string[],
   mappingResultMapList: MappingResultMap<unknown>[],
   nestedArgMap: NestedArgMap,
@@ -152,7 +153,7 @@ export const reportMissingNestedFilters = (
 
   if (notMappedTypeList.length > 0) {
     throw new Error(
-      `Nested filters has not been mapped for following types (${notMappedTypeList.join(',')}).` +
+      `${type} nested filter doesn't contain mapping for following types (${notMappedTypeList.join(',')}).` +
       (errorMessageList.length > 0 ? ' ' : '') +
       errorMessageList.join(' '),
     )
