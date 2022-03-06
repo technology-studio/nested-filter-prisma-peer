@@ -11,7 +11,7 @@ import type { Context } from '@txo/prisma-graphql'
 import { nestedFilterList } from './NestedFilters'
 
 export const createContext = (attributes?: { resultCache?: ResultCache }): Context => _createContext({
-  prisma: new PrismaClient({}),
+  prisma: null as unknown as PrismaClient, // << only for tests, usually we create client here by new PrismaClient()
   nestedFilterMap: createNestedFilterMap(nestedFilterList),
   request: {
     headers: {},
