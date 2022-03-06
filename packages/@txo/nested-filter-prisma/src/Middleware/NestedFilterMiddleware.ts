@@ -11,6 +11,7 @@ import type { Context } from '@txo/prisma-graphql'
 import { withNestedFilters } from '../Api/WithNestedFilters'
 import {
   AddNestedResutMode,
+  CacheKey,
   GetWhere,
   MappingResultMap,
   NestedArgMap,
@@ -197,7 +198,11 @@ RESULT
         result = resolverContext.resultCache.getCachedResult(type, cacheKey)
       } else {
         result = await onGet()
-        resolverContext.resultCache.addResultToCache(type, cacheKey === undefined ? result[cacheKeyAttribute] : cacheKey, result)
+        if (cacheKey === undefined && typeof result !== 'object') {
+          throw new Error(`Non object nested result for (${type}) can not be cached without cache key`)
+        }
+        const key = cacheKey === undefined ? (result as Record<string, CacheKey>)[cacheKeyAttribute] : cacheKey
+        resolverContext.resultCache.addResultToCache(type, key, result)
       }
 
       resolverContext.addNestedResult({ type, result })

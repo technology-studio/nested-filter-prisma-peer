@@ -148,9 +148,9 @@ export type NestedResultMap = {
 
 export type CacheKey = number | string | null
 
-export type GetNestedResultAttributes<TYPE extends Type> = {
+export type GetNestedResultAttributes<TYPE extends Type, EXTRA_TYPE = unknown> = {
   type: TYPE,
-  onGet?: () => Promise<GetStructure<TYPE>>,
+  onGet?: () => Promise<unknown extends EXTRA_TYPE ? GetStructure<TYPE> : (GetStructure<TYPE> | EXTRA_TYPE)>,
   cacheKey?: CacheKey,
   cacheKeyAttribute?: string,
 }
@@ -182,9 +182,9 @@ declare module '@txo/prisma-graphql/lib/Model/Types' {
     withNestedFilters: <TYPE extends Type> (
       attributes: WithNestedFiltersAttributes<TYPE>
     ) => Promise<GetWhere<TYPE>>,
-    getNestedResult: <TYPE extends Type>(
-      attributes: GetNestedResultAttributes<TYPE>
-    ) => Promise<GetStructure<TYPE>>,
+    getNestedResult: <TYPE extends Type, EXTRA_TYPE = unknown>(
+      attributes: GetNestedResultAttributes<TYPE, EXTRA_TYPE>
+    ) => Promise<unknown extends EXTRA_TYPE ? GetStructure<TYPE> : (GetStructure<TYPE> | EXTRA_TYPE)>,
     addNestedResult: <TYPE extends Type>(
       attributes: AddNestedResultAttributes<TYPE>
     ) => void,
