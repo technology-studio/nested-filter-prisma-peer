@@ -167,11 +167,15 @@ export type AddNestedResultAttributes<TYPE extends Type> = {
   mode?: AddNestedResutMode,
 }
 
+export type ReplaceNestedResultAttributes<TYPE extends Type> = {
+  type: TYPE,
+  result: GetStructure<TYPE>,
+}
+
 export interface ResultCache {
   resetCache: () => void,
   isResultCached: (type: Type, key: CacheKey) => boolean,
   getCachedResult: <VALUE>(type: Type, key: CacheKey) => VALUE,
-
   addResultToCache: <VALUE>(type: Type, key: CacheKey, value: VALUE) => void,
 }
 
@@ -188,6 +192,9 @@ declare module '@txo/prisma-graphql/lib/Model/Types' {
     ) => Promise<unknown extends EXTRA_TYPE ? GetStructure<TYPE> : (GetStructure<TYPE> | EXTRA_TYPE)>,
     addNestedResult: <TYPE extends Type>(
       attributes: AddNestedResultAttributes<TYPE>
+    ) => void,
+    replaceNestedResult: <TYPE extends Type>(
+      attributes: ReplaceNestedResultAttributes<TYPE>
     ) => void,
     resultCache: ResultCache,
   }

@@ -43,6 +43,9 @@ export const createContext = (attributes: CreateContextAttributes): Context => {
     addNestedResult: () => {
       throw new Error('nested filter hasn\'t been configured')
     },
+    replaceNestedResult: () => {
+      throw new Error('nested filter hasn\'t been configured')
+    },
     request,
     resultCache: resultCache as unknown as ResultCache,
   }

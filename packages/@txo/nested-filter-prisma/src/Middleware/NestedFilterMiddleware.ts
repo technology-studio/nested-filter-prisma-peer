@@ -8,19 +8,18 @@ import { GraphQLResolveInfo, isLeafType, getNamedType } from 'graphql'
 import { Log } from '@txo/log'
 import type { Context } from '@txo/prisma-graphql'
 
-import { withNestedFilters } from '../Api/WithNestedFilters'
+import { withNestedFiltersFactory } from '../Api/WithNestedFilters'
 import {
-  AddNestedResutMode,
-  CacheKey,
-  GetWhere,
   MappingResultMap,
   NestedArgMap,
   NestedResultMap,
   NestedResultNode,
   Type,
-  WithNestedFiltersAttributes,
 } from '../Model/Types'
 import { reportMissingNestedFilters, ResultCacheImpl } from '../Api'
+import { replaceNestedResultFactory } from '../Api/ReplaceNestedResult'
+import { addNestedResultFactory } from '../Api/AddNestedResult'
+import { getNestedResultFactory } from '../Api/GetNestedResult'
 
 const log = new Log('txo.nested-filter-prisma.Middleware.NestedFilterMiddleware')
 
@@ -160,70 +159,15 @@ RESULT
   let usedNestedFilters = false
 
   const typeToMappingResultMapList: Record<string, MappingResultMap<unknown>[]> = {}
+  resolverContext.withNestedFilters = withNestedFiltersFactory(
+    { source, args, context: resolverContext, info },
+    () => { usedNestedFilters = true },
+    typeToMappingResultMapList,
+  )
 
-  resolverContext.withNestedFilters = async <TYPE extends Type>({
-    type,
-    where,
-    mapping,
-    pluginOptions,
-    excludeArgsWhere,
-  }: WithNestedFiltersAttributes<TYPE>): Promise<GetWhere<TYPE>> => {
-    const resolverArguments = {
-      source, args, context: resolverContext, info,
-    }
-    usedNestedFilters = true
-
-    const mergedMapping = {
-      ...resolverContext.nestedFilterMap[type]?.declaration.mapping,
-      ...mapping,
-    }
-    return withNestedFilters({
-      mapping: mergedMapping,
-      type, // TODO: validate, removing probably not desired type retrieval from info ->  info.path.typename as Type,
-      where,
-      resolverArguments,
-      pluginOptions,
-      typeToMappingResultMapList,
-      excludeArgsWhere,
-    })
-  }
-
-  resolverContext.getNestedResult = async ({ type, onGet, cacheKey, cacheKeyAttribute = 'id', addNestedResult = false }) => {
-    if (type in nestedArgMap) {
-      return nestedArgMap[type]
-    }
-
-    if (onGet) {
-      let result
-      if (cacheKey !== undefined && resolverContext.resultCache.isResultCached(type, cacheKey)) {
-        result = resolverContext.resultCache.getCachedResult(type, cacheKey)
-      } else {
-        result = await onGet()
-        if (cacheKey === undefined && typeof result !== 'object') {
-          throw new Error(`Non object nested result for (${type}) can not be cached without cache key`)
-        }
-        const key = cacheKey === undefined ? (result as Record<string, CacheKey>)[cacheKeyAttribute] : cacheKey
-        resolverContext.resultCache.addResultToCache(type, key, result)
-      }
-      if (addNestedResult) {
-        resolverContext.addNestedResult({ type, result })
-      }
-      return result
-    }
-    throw new Error(`Nested result for (${type}) is not present.`)
-  }
-
-  resolverContext.addNestedResult = ({ type, result, mode }) => {
-    if (nestedResultNode) {
-      if (mode === AddNestedResutMode.CHILDREN) {
-        nestedResultNode.childrenNestedArgMap[type] = result
-      } else {
-        nestedArgMap[type] = result
-        nestedResultNode.nestedArgMap[type] = result
-      }
-      log.debug('addNestedResult', { nestedArgMap })
-    }
-  }
+  resolverContext.getNestedResult = getNestedResultFactory(resolverContext, nestedArgMap)
+  resolverContext.addNestedResult = addNestedResultFactory(nestedResultNode, nestedArgMap)
+  resolverContext.replaceNestedResult = replaceNestedResultFactory(context)
 
   const result = await resolve(source, args, resolverContext, info)
 

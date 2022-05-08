@@ -11,11 +11,13 @@ import type {
   Type,
   GetWhere,
   NestedFilterMappingValue,
+  WithNestedFiltersAttributes,
+  MappingResultMap,
 } from '../Model/Types'
+import { MappingResultMode } from '../Model'
 
 // import { reportMissingNestedFilters } from './ReportNestedFilters'
 import { resolveMapping, resolveMappingValue } from './Mapping'
-import { MappingResultMode, MappingResultMap } from '../Model'
 
 const containsWhere = <ARGS>(args: ARGS): args is ARGS & { where: unknown } => (
   args && 'where' in args
@@ -105,4 +107,31 @@ export const withNestedFilters = async <TYPE extends Type>({
     resolverArguments,
     pluginOptions,
   )
+}
+
+export const withNestedFiltersFactory = (
+  resolverArguments: ResolverArguments,
+  setUsedNestedFilters: () => void,
+  typeToMappingResultMapList: Record<string, MappingResultMap<unknown>[]>,
+) => async <TYPE extends Type>({
+  type,
+  where,
+  mapping,
+  pluginOptions,
+  excludeArgsWhere,
+}: WithNestedFiltersAttributes<TYPE>): Promise<GetWhere<TYPE>> => {
+  setUsedNestedFilters()
+  const mergedMapping = {
+    ...resolverArguments.context.nestedFilterMap[type]?.declaration.mapping,
+    ...mapping,
+  }
+  return withNestedFilters({
+    mapping: mergedMapping,
+    type, // TODO: validate, removing probably not desired type retrieval from info ->  info.path.typename as Type,
+    where,
+    resolverArguments,
+    pluginOptions,
+    typeToMappingResultMapList,
+    excludeArgsWhere,
+  })
 }
