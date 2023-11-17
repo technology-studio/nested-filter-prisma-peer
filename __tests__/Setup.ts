@@ -4,9 +4,8 @@
  * @Copyright: Technology Studio
 **/
 
-import './Config/LogConfig'
+import 'Config/LogConfig'
 
-process.env.DATABASE_URL = 'postgres://test'
 // Mock your external modules here if needed
 // jest
 // .mock('package', () => {

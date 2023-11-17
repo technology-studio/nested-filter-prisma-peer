@@ -26,14 +26,11 @@ configManager.update({
   defaultLevelForNodeEnvironmentMap: {
     production: Level.ERROR,
     development: Level.INFO,
-    test: Level.INFO,
   },
   levelOverride: {
     level: Level.DEBUG,
     namespacePatternList: [
-      // 'txo.nested-filter-prisma.Middleware.NestedFilterMiddleware',
-      // 'txo.nested-filter-prisma.Api.MappingFunction',
-      // 'txo.nested-filter-prisma.Api.Mapping',
+      // '@txo.data-table.src.Api.TableProxy',
     ],
   },
 })
