@@ -1,12 +1,12 @@
 {
   "name": "@txo-peer-dep/nested-filter-prisma",
   "version": "2.0.3",
-  "description": "Technology Studio - Nested filter prisma",
+  "description": "Technology Studio - Nested filter prisma peer",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/technology-studio/nested-filter-prisma.git"
+    "url": "https://github.com/technology-studio/nested-filter-prisma-peer.git"
   },
   "author": {
     "name": "Technology Studio",
