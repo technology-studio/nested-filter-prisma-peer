@@ -40,7 +40,7 @@
     "@txo/prisma-graphql": "^1.0.0"
   },
   "devDependencies": {
-    "@prisma/client": "^5.13.0",
+    "@prisma/client": "^5.14.0",
     "@txo-peer-dep/log": "^4.0.4",
     "@txo/commitlint": "^1.0.15",
     "@txo/log-console": "^3.0.0",
@@ -54,7 +54,7 @@
     "jest": "^29.7.0",
     "lint-staged": "^15.2.2",
     "npm-check-updates": "^16.14.20",
-    "prisma": "^5.13.0",
+    "prisma": "^5.14.0",
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.2",
     "typescript": "^5.4.5"
