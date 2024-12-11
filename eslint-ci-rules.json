@@ -1,0 +1,7 @@
+[
+  "@typescript-eslint/no-magic-numbers",
+  "@stylistic/space-before-function-paren",
+  "eslint-comments/require-description",
+  "@typescript-eslint/no-empty-object-type",
+  "@typescript-eslint/consistent-type-exports"
+]
