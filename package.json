@@ -42,7 +42,7 @@
     "@txo/prisma-graphql": "^1.0.0"
   },
   "devDependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.9.1",
     "@txo-peer-dep/log": "^4.0.4",
     "@txo/commitlint": "^1.1.7",
     "@txo/log-console": "^3.0.0",
